@@ -3,7 +3,7 @@ from groq import Groq
 
 class LLM:
     def __init__(self):
-        os.environ["GROQ_API_KEY"] = "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"
+        os.environ["GROQ_API_KEY"] = "REDACTED_FOR_SAFETY"  # Replace with your actual API key
         self.client = Groq(
             api_key=os.environ.get("GROQ_API_KEY"),  # This is the default and can be omitted
         )
