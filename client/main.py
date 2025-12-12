@@ -5,14 +5,16 @@ import pythoncom
 
 server_ip = "192.168.86.38"
 server_port = 7777
-domain = "photos.google.com"
+domain = "ordbokene.no"
 
 word = wordwrapper.WordWrapper(visible=True)
 client = networkclient.Client(server_ip, server_port, domain)
 
 def find_prompt_replace(word: wordwrapper.WordWrapper):
     prompt = word.get_block("-", "-")
-    word.replace_block("-", "-", client.send_prompt(prompt))
+    if prompt is None:
+        return
+    word.replace_block(",,", ",,", client.send_prompt(prompt))
 
 def handle_deactivated(word: wordwrapper.WordWrapper):
     find_prompt_replace(word)
