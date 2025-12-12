@@ -95,42 +95,71 @@ class DNSTunnelClient:
         total_chunks = None
         
         while chunk_num < max_chunks:
-            chunk_data = self._receive_chunk(chunk_num, timeout)
+            chunk_string = self._receive_chunk(chunk_num, timeout)
             
-            if chunk_data is None:
+            if chunk_string is None:
                 # No more chunks or timeout
-                break
+                if chunk_num == 0:
+                    # First chunk failed - no data available
+                    return None
+                else:
+                    # We got some chunks but this one failed - might be done
+                    break
             
-            # Parse chunk metadata
-            if chunk_data.startswith(b"CHUNK:"):
+            # Check if this is a chunked response
+            if chunk_string.startswith("CHUNK:"):
+                # Parse: "CHUNK:N/T:base32data"
                 try:
-                    header, data = chunk_data.split(b":", 3)[1:]  # Skip "CHUNK"
-                    parts = header.split(b"/")
-                    current = int(parts[0])
-                    total = int(parts[1])
-                    
-                    if total_chunks is None:
-                        total_chunks = total
-                    
-                    all_data.append(data)
-                    chunk_num += 1
-                    
-                    if current + 1 >= total:
-                        # All chunks received
-                        break
-                except:
-                    # Not a chunked response, return as-is
-                    return chunk_data
+                    parts = chunk_string.split(":", 2)
+                    if len(parts) >= 3:
+                        chunk_info = parts[1]  # "N/T"
+                        data_part = parts[2]   # base32-encoded data
+                        
+                        current_chunk, total = chunk_info.split("/")
+                        current_chunk = int(current_chunk)
+                        total = int(total)
+                        
+                        if total_chunks is None:
+                            total_chunks = total
+                        
+                        # Store the base32-encoded data part
+                        all_data.append(data_part)
+                        chunk_num += 1
+                        
+                        # Check if we have all chunks
+                        if len(all_data) >= total:
+                            break
+                    else:
+                        # Malformed chunk header
+                        return None
+                except Exception as e:
+                    print(f"[DNSTunnelClient] Error parsing chunk: {e}")
+                    return None
             else:
-                # Single response without chunking
-                return chunk_data
+                # Not a chunked response - decode single response directly
+                try:
+                    padding = (8 - len(chunk_string) % 8) % 8
+                    chunk_string += '=' * padding
+                    return base64.b32decode(chunk_string.upper())
+                except Exception as e:
+                    print(f"[DNSTunnelClient] Error decoding single response: {e}")
+                    return None
         
+        # Reassemble all chunks
         if all_data:
-            return b''.join(all_data)
+            try:
+                full_encoded = ''.join(all_data)
+                padding = (8 - len(full_encoded) % 8) % 8
+                full_encoded += '=' * padding
+                return base64.b32decode(full_encoded.upper())
+            except Exception as e:
+                print(f"[DNSTunnelClient] Error reassembling chunks: {e}")
+                return None
+        
         return None
     
-    def _receive_chunk(self, chunk_num: int, timeout: Optional[int] = None) -> Optional[bytes]:
-        """Receive a single chunk from server."""
+    def _receive_chunk(self, chunk_num: int, timeout: Optional[int] = None) -> Optional[str]:
+        """Receive a single chunk from server. Returns base32 string, not decoded bytes."""
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.settimeout(timeout or self.timeout)
         
@@ -147,11 +176,10 @@ class DNSTunnelClient:
             response, _ = sock.recvfrom(2048)
             data = self._parse_dns_response(response)
             
-            if data:
-                padding = (8 - len(data) % 8) % 8
-                data += '=' * padding
-                return base64.b32decode(data.upper())
-            return None
+            # Return the raw base32 string (or chunk header string)
+            # Don't decode yet - let receive() handle it
+            return data if data else None
+                
         except socket.timeout:
             return None
         except OSError as e:
