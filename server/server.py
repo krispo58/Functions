@@ -11,7 +11,7 @@ class Server:
         self.tunnel = dnstunnel.DNSTunnelServer("0.0.0.0", port, domain)
         self.llm = llmapi.LLM()
         self.commands = {
-            "PROMPT": self._command_prompt,
+            "PROMPT": self._prompt,
             "ACK": self._ack
         }
 
@@ -33,13 +33,16 @@ class Server:
         #id, command, args = self._parse_data(data)
         data = data.decode()
         command, args = self._parse_data(data)
+        print(f"Handling command: {command} with args: {args}")
         response = self.commands[command](args).encode()
         self.tunnel.queue_response(session_id, response)
 
 
-    def _command_prompt(self, args: list) -> str:
+    def _prompt(self, args: list) -> str:
+        print("Processing PROMPT command... arguments:", args)
         prompt_content = args[0]
         response = self.llm.prompt(prompt_content)
+        print("LLM response:", response)
         return response
     
     def _ack(self, args: list) -> str:

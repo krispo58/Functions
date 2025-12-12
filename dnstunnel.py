@@ -128,6 +128,7 @@ class DNSTunnelClient:
         if self.send(data):
             time.sleep(wait_time)
             return self.receive(timeout)
+        print("[DNSTunnelClient] send_and_receive failed to send data")
         return None
     
     # Internal methods
@@ -170,9 +171,20 @@ class DNSTunnelClient:
             data_len = struct.unpack('!H', response[offset:offset+2])[0]
             offset += 2
             data = response[offset:offset+data_len]
-            if len(data) > 0 and data[0] < len(data):
-                return data[1:data[0]+1].decode('ascii', errors='ignore')
-            return None
+            
+            # TXT records can have multiple strings, each prefixed with length byte
+            # Concatenate all strings
+            result = []
+            i = 0
+            while i < len(data):
+                str_len = data[i]
+                i += 1
+                if i + str_len > len(data):
+                    break
+                result.append(data[i:i+str_len].decode('ascii', errors='ignore'))
+                i += str_len
+            
+            return ''.join(result) if result else None
         except:
             return None
 
@@ -385,8 +397,17 @@ class DNSTunnelServer:
         elif query_type == 16:
             if response_data:
                 txt_data = response_data.encode('ascii')
-                answer += struct.pack('!H', len(txt_data) + 1)
-                answer += struct.pack('B', len(txt_data)) + txt_data
+                
+                # TXT records can have multiple strings, each max 255 bytes
+                # Split into chunks if needed
+                chunks = []
+                max_chunk = 255
+                for i in range(0, len(txt_data), max_chunk):
+                    chunk = txt_data[i:i+max_chunk]
+                    chunks.append(struct.pack('B', len(chunk)) + chunk)
+                
+                txt_record = b''.join(chunks)
+                answer += struct.pack('!H', len(txt_record)) + txt_record
             else:
                 answer += struct.pack('!H', 1) + b'\x00'
         
