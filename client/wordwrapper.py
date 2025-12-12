@@ -54,13 +54,13 @@ class WordWrapper:
             if is_word and not self._last_active_was_word:
                 self._last_active_was_word = True
                 if self.on_word_activated:
-                    self.on_word_activated()
+                    self.on_word_activated(self)
 
             # Word just got unfocused
             if not is_word and self._last_active_was_word:
                 self._last_active_was_word = False
                 if self.on_word_deactivated:
-                    self.on_word_deactivated()
+                    self.on_word_deactivated(self)
 
         self._win_event_proc = WinEventProcType(callback)
 

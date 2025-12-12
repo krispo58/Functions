@@ -3,7 +3,7 @@ import wordwrapper
 import pythoncom
 
 
-server_ip = "127.0.0.1"
+server_ip = "192.168.86.38"
 server_port = 7777
 domain = "photos.google.com"
 
@@ -34,6 +34,9 @@ def main():
     print("Connection successful")
 
     word.on_word_deactivated = handle_deactivated
+
+    while True:
+        pythoncom.PumpWaitingMessages()
 
 if __name__ == "__main__":
     main()
