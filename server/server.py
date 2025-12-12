@@ -1,9 +1,52 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
+
 import dnstunnel
+import llmapi
 
-def handle_data(session_id, data, addr):
-    print("Received data:", data)
-    server.queue_response(session_id, b"Response from server")
+class Server:
+    def __init__(self, port: int, debug: bool = False, domain: str = "photos.google.com"):
+        self.debug = debug
+        self.tunnel = dnstunnel.DNSTunnelServer("0.0.0.0", port, domain)
+        self.llm = llmapi.LLM()
+        self.commands = {
+            "PROMPT": self._command_prompt,
+            "ACK": self._ack
+        }
 
-server = dnstunnel.DNSTunnelServer("0.0.0.0", 7777, "example.com")
-server.on_data_received = handle_data
-server.start()
+        if debug:
+            print(f"Server initialized on 0.0.0.0:{port}")
+
+    def _parse_data(self, data: str) -> tuple:
+        splitted = data.split("|||")
+        #id = splitted[0]
+        command = splitted[0]
+        if len(splitted) < 2:
+            return (command, [])
+        return (command, splitted[1:])
+        #return (id, command, splitted[2:])
+
+    def _handle_request(self, session_id: int, data: bytes, addr: str) -> str:
+        if self.debug:
+            print(f"Received data from {addr}: {data}")
+        #id, command, args = self._parse_data(data)
+        data = data.decode()
+        command, args = self._parse_data(data)
+        response = self.commands[command](args).encode()
+        self.tunnel.queue_response(session_id, response)
+
+
+    def _command_prompt(self, args: list) -> str:
+        prompt_content = args[0]
+        response = self.llm.prompt(prompt_content)
+        return response
+    
+    def _ack(self, args: list) -> str:
+        return "ACK"
+
+    def start(self):
+        print("Starting DNS Tunnel Server...")
+        self.tunnel.on_data_received = self._handle_request
+        print("DNS Tunnel Server started.")
+        self.tunnel.start()

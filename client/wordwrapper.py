@@ -14,7 +14,10 @@ class WordWrapper:
         try:
             self.word = win32.GetActiveObject("Word.Application")
         except:
-            self.word = win32.gencache.EnsureDispatch("Word.Application")
+            try:
+                self.word = win32.gencache.EnsureDispatch("Word.Application")
+            except:
+                raise Exception("Could not start or connect to Word application. Is word installed?")
 
         self.word.Visible = visible
         self.doc = None

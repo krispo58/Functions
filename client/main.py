@@ -1,15 +1,17 @@
-import dnstunnel
+import client as networkclient
 import pythoncom
-import wordwrapper
+#import wordwrapper
 
 server_ip = "127.0.0.1"
 server_port = 7777
-domain = "example.com"
-
-word = wordwrapper.WordWrapper(visible=True)
-word.use_active_doc()
-word.on_word_deactivated = lambda: word.replace_block()
+domain = "photos.google.com"
 
 
-while True:
-    pythoncom.PumpWaitingMessages()
+def main():
+    pythoncom.CoInitialize()
+    #word = wordwrapper.WordWrapper(visible=True)
+    client = networkclient.Client(server_ip, server_port, domain)
+
+    result = client.ack()
+
+    print("Connection established") if result else "Failed to connect to server."
