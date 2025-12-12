@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-DNS Tunnel Library - Pure Transport Layer
+DNS Tunnel Library - Pure Transport Layer with Chunking Support
 Provides DNSTunnelClient and DNSTunnelServer as network communication primitives.
-You build your application logic on top of these classes.
+Automatically handles large data by chunking responses.
 """
 
 import socket
@@ -15,7 +15,7 @@ from typing import Optional, Callable
 from collections import defaultdict
 
 # ============================================================================
-# DNS TUNNEL CLIENT - Pure Transport Layer
+# DNS TUNNEL CLIENT - Pure Transport Layer with Chunking
 # ============================================================================
 
 class DNSTunnelClient:
@@ -23,7 +23,7 @@ class DNSTunnelClient:
     DNS Tunnel Client - Handles only network communication.
     
     Use this to send/receive raw bytes through DNS queries.
-    Build your application protocol on top.
+    Automatically handles chunking for large responses.
     """
     
     def __init__(self, server_ip: str, server_port: int, domain: str):
@@ -40,6 +40,7 @@ class DNSTunnelClient:
         self.domain = domain.rstrip('.').lower()
         self.session_id = random.randint(1000, 9999)
         self.timeout = 5
+        self.max_response_chunk = 180  # Max bytes per response chunk
     
     def send(self, data: bytes, chunk_delay: float = 0.05) -> bool:
         """
@@ -78,25 +79,72 @@ class DNSTunnelClient:
         finally:
             sock.close()
     
-    def receive(self, timeout: Optional[int] = None) -> Optional[bytes]:
+    def receive(self, timeout: Optional[int] = None, max_chunks: int = 100) -> Optional[bytes]:
         """
-        Receive raw bytes through DNS tunnel.
+        Receive raw bytes through DNS tunnel with automatic chunk reassembly.
         
         Args:
-            timeout: Timeout in seconds (uses default if None)
+            timeout: Timeout in seconds per chunk (uses default if None)
+            max_chunks: Maximum number of chunks to receive
             
         Returns:
             Received bytes or None if no data/timeout
         """
+        all_data = []
+        chunk_num = 0
+        total_chunks = None
+        
+        while chunk_num < max_chunks:
+            chunk_data = self._receive_chunk(chunk_num, timeout)
+            
+            if chunk_data is None:
+                # No more chunks or timeout
+                break
+            
+            # Parse chunk metadata
+            if chunk_data.startswith(b"CHUNK:"):
+                try:
+                    header, data = chunk_data.split(b":", 3)[1:]  # Skip "CHUNK"
+                    parts = header.split(b"/")
+                    current = int(parts[0])
+                    total = int(parts[1])
+                    
+                    if total_chunks is None:
+                        total_chunks = total
+                    
+                    all_data.append(data)
+                    chunk_num += 1
+                    
+                    if current + 1 >= total:
+                        # All chunks received
+                        break
+                except:
+                    # Not a chunked response, return as-is
+                    return chunk_data
+            else:
+                # Single response without chunking
+                return chunk_data
+        
+        if all_data:
+            return b''.join(all_data)
+        return None
+    
+    def _receive_chunk(self, chunk_num: int, timeout: Optional[int] = None) -> Optional[bytes]:
+        """Receive a single chunk from server."""
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.settimeout(timeout or self.timeout)
         
         try:
-            subdomain = f"recv-{self.session_id}"
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)
+        except:
+            pass
+        
+        try:
+            subdomain = f"recv-{self.session_id}-{chunk_num}"
             query = self._create_dns_query(subdomain, query_type=16)
             sock.sendto(query, (self.server_ip, self.server_port))
             
-            response, _ = sock.recvfrom(512)
+            response, _ = sock.recvfrom(2048)
             data = self._parse_dns_response(response)
             
             if data:
@@ -106,8 +154,11 @@ class DNSTunnelClient:
             return None
         except socket.timeout:
             return None
+        except OSError as e:
+            if hasattr(e, 'winerror') and e.winerror == 10040:
+                print(f"[DNSTunnelClient] Error: Response too large even after chunking")
+            return None
         except Exception as e:
-            print(f"[DNSTunnelClient] Receive error: {e}")
             return None
         finally:
             sock.close()
@@ -120,7 +171,7 @@ class DNSTunnelClient:
         Args:
             data: Data to send
             wait_time: Time to wait between send and receive
-            timeout: Receive timeout
+            timeout: Receive timeout per chunk
             
         Returns:
             Response bytes or None
@@ -128,7 +179,6 @@ class DNSTunnelClient:
         if self.send(data):
             time.sleep(wait_time)
             return self.receive(timeout)
-        print("[DNSTunnelClient] send_and_receive failed to send data")
         return None
     
     # Internal methods
@@ -172,8 +222,7 @@ class DNSTunnelClient:
             offset += 2
             data = response[offset:offset+data_len]
             
-            # TXT records can have multiple strings, each prefixed with length byte
-            # Concatenate all strings
+            # TXT records can have multiple strings
             result = []
             i = 0
             while i < len(data):
@@ -190,7 +239,7 @@ class DNSTunnelClient:
 
 
 # ============================================================================
-# DNS TUNNEL SERVER - Pure Transport Layer
+# DNS TUNNEL SERVER - Pure Transport Layer with Chunking
 # ============================================================================
 
 class DNSTunnelServer:
@@ -199,6 +248,7 @@ class DNSTunnelServer:
     
     Set a callback to receive data from clients.
     Use queue_response() to send data back to clients.
+    Automatically chunks large responses.
     """
     
     def __init__(self, listen_ip: str, listen_port: int, domain: str):
@@ -217,23 +267,50 @@ class DNSTunnelServer:
         # Internal state
         self.sessions = defaultdict(dict)
         self.session_metadata = {}
-        self.response_queue = {}
+        self.response_queue = {}  # session_id -> list of chunks
         self.running = False
         self.sock = None
+        
+        # Chunking configuration
+        self.max_chunk_size = 180  # Max bytes per chunk after base32 encoding
         
         # Callback for when complete data is received
         self.on_data_received: Optional[Callable[[int, bytes, tuple], None]] = None
     
     def queue_response(self, session_id: int, data: bytes):
         """
-        Queue data to send back to a client.
+        Queue data to send back to a client. Automatically chunks if needed.
         
         Args:
             session_id: Session ID of the client
-            data: Raw bytes to send
+            data: Raw bytes to send (can be any size, will be chunked automatically)
         """
         encoded = base64.b32encode(data).decode('ascii').lower().rstrip('=')
-        self.response_queue[session_id] = encoded
+        
+        # Calculate how many chunks we need
+        # Account for chunk header overhead: "CHUNK:N/T:"
+        header_overhead = 20  # Conservative estimate for "CHUNK:99/99:"
+        effective_chunk_size = self.max_chunk_size - header_overhead
+        
+        if len(encoded) <= effective_chunk_size:
+            # Small enough to send in one chunk, no header needed
+            self.response_queue[session_id] = [encoded]
+        else:
+            # Need to chunk the response
+            chunks = []
+            total_chunks = (len(encoded) + effective_chunk_size - 1) // effective_chunk_size
+            
+            for i in range(total_chunks):
+                start = i * effective_chunk_size
+                end = start + effective_chunk_size
+                chunk_data = encoded[start:end]
+                
+                # Add chunk header
+                chunk_with_header = f"CHUNK:{i}/{total_chunks}:{chunk_data}"
+                chunks.append(chunk_with_header)
+            
+            self.response_queue[session_id] = chunks
+            print(f"[DNSTunnelServer] Response for session {session_id} split into {total_chunks} chunks ({len(data)} bytes)")
     
     def start(self, blocking: bool = True):
         """
@@ -294,14 +371,29 @@ class DNSTunnelServer:
         
         session_id, chunk_num, total_chunks, chunk_data = decoded
         
-        # Handle receive request
+        # Handle receive request (possibly for a specific chunk)
         if chunk_data == "RECV":
-            response_data = self.response_queue.get(session_id)
-            response = self._create_dns_response(transaction_id, query_name, 
-                                                query_type, response_data)
-            self.sock.sendto(response, addr)
-            if response_data:
-                del self.response_queue[session_id]
+            if session_id in self.response_queue:
+                chunks = self.response_queue[session_id]
+                
+                if chunk_num < len(chunks):
+                    # Send specific chunk
+                    response_data = chunks[chunk_num]
+                    response = self._create_dns_response(transaction_id, query_name, 
+                                                        query_type, response_data)
+                    self.sock.sendto(response, addr)
+                    
+                    # If this was the last chunk, clean up
+                    if chunk_num >= len(chunks) - 1:
+                        del self.response_queue[session_id]
+                else:
+                    # No more chunks
+                    response = self._create_dns_response(transaction_id, query_name, query_type)
+                    self.sock.sendto(response, addr)
+            else:
+                # No response queued
+                response = self._create_dns_response(transaction_id, query_name, query_type)
+                self.sock.sendto(response, addr)
             return
         
         # Store chunk
@@ -329,9 +421,15 @@ class DNSTunnelServer:
             if not query_name.endswith(self.domain):
                 return None
             subdomain = query_name[:-len(self.domain)-1]
+            
+            # Check for chunk receive request: recv-SESSION-CHUNKNUM
             if subdomain.startswith('recv-'):
-                session_id = int(subdomain.split('-')[1])
-                return (session_id, -1, -1, "RECV")
+                parts = subdomain.split('-')
+                session_id = int(parts[1])
+                chunk_num = int(parts[2]) if len(parts) > 2 else 0
+                return (session_id, chunk_num, -1, "RECV")
+            
+            # Regular data: sessionid-chunknum-totalchunks-data
             parts = subdomain.split('-', 3)
             if len(parts) != 4:
                 return None
@@ -398,8 +496,7 @@ class DNSTunnelServer:
             if response_data:
                 txt_data = response_data.encode('ascii')
                 
-                # TXT records can have multiple strings, each max 255 bytes
-                # Split into chunks if needed
+                # Split into 255-byte chunks for TXT record
                 chunks = []
                 max_chunk = 255
                 for i in range(0, len(txt_data), max_chunk):
