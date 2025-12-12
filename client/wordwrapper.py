@@ -97,6 +97,13 @@ class WordWrapper:
 
         self.doc = self.word.Documents.Open(path)
         return self.doc
+    
+    def open_new_doc(self):
+        """
+        Creates a new blank Word document and sets it as the active doc.
+        """
+        self.doc = self.word.Documents.Add()
+        return self.doc
 
     def write_end(self, text):
         if not self.doc:
@@ -148,6 +155,29 @@ class WordWrapper:
         # Replace just one
         find.Execute(Replace=1)
 
+    def get_block(self, prefix="###", suffix="###"):
+        """
+        Returns the text inside prefix...suffix.
+        Example: ###hello there### -> 'hello there'
+        Returns None if not found.
+        """
+        if self.doc is None:
+            raise Exception("No document loaded.")
+
+        full_text = self.doc.Content.Text
+
+        start = full_text.find(prefix)
+        if start == -1:
+            return None
+
+        start += len(prefix)
+
+        end = full_text.find(suffix, start)
+        if end == -1:
+            return None
+
+        return full_text[start:end]
+
     def save(self):
         if self.doc:
             self.doc.Save()
@@ -160,22 +190,3 @@ class WordWrapper:
     def quit(self):
         self.word.Quit()
         self.word = None
-
-def write_essay():
-    essay = """
-    blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah 
-    blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah 
-    blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah 
-    blah blah blah blah blah blah blah blah blah blah blah blah 
-    blah blah blah blah blah blah blah blah blah 
-    blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah 
-"""
-    word.write_start(essay)
-
-word = WordWrapper(visible=True)
-word.use_active_doc()
-word.on_word_deactivated = write_essay
-
-print("Program started")
-while True:
-    pythoncom.PumpWaitingMessages()
