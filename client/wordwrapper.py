@@ -133,27 +133,30 @@ class WordWrapper:
 
     def replace_block(self, prefix="###", suffix="###", replacement="hello world"):
         """
-        Replaces the first occurrence of content wrapped in prefix...suffix.
-        Example: ###something### → hello world
+        Replaces the first occurrence of content wrapped in prefix...suffix
+        with the provided replacement, without using Word's Replace engine
+        (avoids Word's string-length limit).
         """
-
         if self.doc is None:
             raise Exception("No document loaded.")
 
-        # Word wildcard pattern:
-        # prefix + * + suffix
-        pattern = f"{prefix}*{suffix}"
+        full_text = self.doc.Content.Text
 
-        find = self.doc.Content.Find
-        find.Text = pattern
-        find.Replacement.Text = replacement
+        start_idx = full_text.find(prefix)
+        if start_idx == -1:
+            return False
 
-        find.MatchWildcards = True
-        find.Forward = True
-        find.Wrap = 1  # wdFindContinue
+        end_idx = full_text.find(suffix, start_idx + len(prefix))
+        if end_idx == -1:
+            return False
 
-        # Replace just one
-        find.Execute(Replace=1)
+        # actual content range including prefix+suffix
+        rng = self.doc.Range(start_idx, end_idx + len(suffix))
+
+        # direct replacement (no Find engine!)
+        rng.Text = replacement
+
+        return True
 
     def get_block(self, prefix="###", suffix="###"):
         """
