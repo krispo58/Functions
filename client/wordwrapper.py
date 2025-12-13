@@ -4,6 +4,8 @@ import win32gui
 import win32process
 import win32con
 import win32api
+import ctypes
+from ctypes import wintypes
 from ctypes import windll, CFUNCTYPE, c_int, c_void_p, POINTER
 
 
@@ -73,6 +75,38 @@ class WordWrapper:
             0,
             win32con.WINEVENT_OUTOFCONTEXT
         )
+
+    def flash_taskbar(self, count: int = 3):
+        """
+        Triggers a taskbar attention flash on the Word icon.
+        Does NOT bring Word to the foreground.
+        """
+        # Get Word main window handle
+        hwnd = self.word.Hwnd
+        if not hwnd:
+            return False
+
+        FLASHW_ALL = 3
+        FLASHW_TIMERNOFG = 12
+
+        class FLASHWINFO(ctypes.Structure):
+            _fields_ = [
+                ("cbSize", wintypes.UINT),
+                ("hwnd", wintypes.HWND),
+                ("dwFlags", wintypes.DWORD),
+                ("uCount", wintypes.UINT),
+                ("dwTimeout", wintypes.DWORD),
+            ]
+
+        info = FLASHWINFO(
+            cbSize=ctypes.sizeof(FLASHWINFO),
+            hwnd=hwnd,
+            dwFlags=FLASHW_ALL | FLASHW_TIMERNOFG,
+            uCount=count,
+            dwTimeout=0,
+        )
+
+        return ctypes.windll.user32.FlashWindowEx(ctypes.byref(info)) != 0
 
     def get_text(self, start: int = None, end: int = None, include_hidden: bool = False) -> str:
         """Get text from the document or range. Optionally include hidden text."""
@@ -146,16 +180,18 @@ class WordWrapper:
         find.Replacement.Text = new
         find.Execute(Replace=2)  # wdReplaceAll
 
-    def replace_block(self, prefix="###", suffix="###", replacement="hello world"):
+    def replace_block(self, prefix="###", suffix="###", replacement="hello world", include_hidden: bool = False
+):
         """
-        Replaces the first occurrence of content wrapped in prefix...suffix
-        with the provided replacement, without using Word's Replace engine
-        (avoids Word's string-length limit).
+        Replaces the first occurrence of content wrapped in prefix...suffix.
+        Works with large replacement text and optional hidden text.
         """
         if self.doc is None:
             raise Exception("No document loaded.")
 
-        full_text = self.doc.Content.Text
+        rng = self.doc.Content
+        rng.TextRetrievalMode.IncludeHiddenText = include_hidden
+        full_text = rng.Text
 
         start_idx = full_text.find(prefix)
         if start_idx == -1:
@@ -165,31 +201,32 @@ class WordWrapper:
         if end_idx == -1:
             return False
 
-        # actual content range including prefix+suffix
-        rng = self.doc.Range(start_idx, end_idx + len(suffix))
-
-        # direct replacement (no Find engine!)
-        rng.Text = replacement
+        # IMPORTANT:
+        # Word range indices are always based on the *actual document content*,
+        # not the filtered text. Luckily, IncludeHiddenText only affects retrieval,
+        # not indexing, so this is safe.
+        replace_rng = self.doc.Range(start_idx, end_idx + len(suffix))
+        replace_rng.Text = replacement
 
         return True
 
-    def get_block(self, prefix="###", suffix="###"):
+    def get_block(self, prefix="###", suffix="###", include_hidden: bool = False):
         """
         Returns the text inside prefix...suffix.
-        Example: ###hello there### -> 'hello there'
         Returns None if not found.
         """
         if self.doc is None:
             raise Exception("No document loaded.")
 
-        full_text = self.doc.Content.Text
+        rng = self.doc.Content
+        rng.TextRetrievalMode.IncludeHiddenText = include_hidden
+        full_text = rng.Text
 
         start = full_text.find(prefix)
         if start == -1:
             return None
 
         start += len(prefix)
-
         end = full_text.find(suffix, start)
         if end == -1:
             return None

@@ -18,6 +18,7 @@ def find_prompt_replace(word: wordwrapper.WordWrapper):
 
 def handle_deactivated(word: wordwrapper.WordWrapper):
     print(word.get_text(include_hidden=True))
+    word.flash_taskbar(5)
 
 def main():
     pythoncom.CoInitialize()
