@@ -6,7 +6,7 @@ import dnstunnel
 import llmapi
 
 class Server:
-    def __init__(self, port: int, debug: bool = False, domain: str = "photos.google.com"):
+    def __init__(self, port: int, debug: bool = False, domain: str = "ordbokene.no"):
         self.debug = debug
         self.tunnel = dnstunnel.DNSTunnelServer("0.0.0.0", port, domain)
         self.llm = llmapi.LLM()

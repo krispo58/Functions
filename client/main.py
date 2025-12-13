@@ -12,6 +12,8 @@ client = networkclient.Client(server_ip, server_port, domain)
 
 def find_prompt_replace(word: wordwrapper.WordWrapper):
     prompt = word.get_block("-", "-")
+    if prompt is None:
+        return
     word.replace_block(",,", ",,", client.send_prompt(prompt))
 
 def handle_deactivated(word: wordwrapper.WordWrapper):
