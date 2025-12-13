@@ -11,13 +11,13 @@ word = wordwrapper.WordWrapper(visible=True)
 client = networkclient.Client(server_ip, server_port, domain)
 
 def find_prompt_replace(word: wordwrapper.WordWrapper):
-    prompt = word.get_block("-", "-")
+    prompt = word.get_block("-", "-", include_hidden=True)
     if prompt is None:
         return
-    word.replace_block(",,", ",,", client.send_prompt(prompt))
+    word.replace_block(",,", ",,", client.send_prompt(prompt), include_hidden=True)
 
 def handle_deactivated(word: wordwrapper.WordWrapper):
-    print(word.get_text(include_hidden=True))
+    find_prompt_replace(word)
     word.flash_taskbar(5)
 
 def main():
