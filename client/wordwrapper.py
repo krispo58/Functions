@@ -74,15 +74,20 @@ class WordWrapper:
             win32con.WINEVENT_OUTOFCONTEXT
         )
 
-    def get_text(self, start: int = None, end: int = None) -> str:
-        """Get text from the document. If start and end are None, gets all text."""
+    def get_text(self, start: int = None, end: int = None, include_hidden: bool = False) -> str:
+        """Get text from the document or range. Optionally include hidden text."""
         if not self.doc:
             raise Exception("No document loaded bro.")
+
         if start is None or end is None:
-            return self.doc.Content.Text
+            rng = self.doc.Content
         else:
             rng = self.doc.Range(start, end)
-            return rng.Text
+
+        # Control whether hidden text is included
+        rng.TextRetrievalMode.IncludeHiddenText = include_hidden
+
+        return rng.Text
 
     def list_open_docs(self):
         docs = []

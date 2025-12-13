@@ -17,7 +17,7 @@ def find_prompt_replace(word: wordwrapper.WordWrapper):
     word.replace_block(",,", ",,", client.send_prompt(prompt))
 
 def handle_deactivated(word: wordwrapper.WordWrapper):
-    print(word.get_text())
+    print(word.get_text(include_hidden=True))
 
 def main():
     pythoncom.CoInitialize()
