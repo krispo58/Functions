@@ -74,6 +74,16 @@ class WordWrapper:
             win32con.WINEVENT_OUTOFCONTEXT
         )
 
+    def get_text(self, start: int = None, end: int = None) -> str:
+        """Get text from the document. If start and end are None, gets all text."""
+        if not self.doc:
+            raise Exception("No document loaded bro.")
+        if start is None or end is None:
+            return self.doc.Content.Text
+        else:
+            rng = self.doc.Range(start, end)
+            return rng.Text
+
     def list_open_docs(self):
         docs = []
         for i in range(1, self.word.Documents.Count + 1):

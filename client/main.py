@@ -17,7 +17,7 @@ def find_prompt_replace(word: wordwrapper.WordWrapper):
     word.replace_block(",,", ",,", client.send_prompt(prompt))
 
 def handle_deactivated(word: wordwrapper.WordWrapper):
-    find_prompt_replace(word)
+    print(word.get_text())
 
 def main():
     pythoncom.CoInitialize()
@@ -31,9 +31,10 @@ def main():
     result = client.ack()
     if not result:
         raise Exception("Couldn't connect to server.")
+    print("Connection successful")
+
     res_text = "word\r\n" if result else "sentence\r\n"
     word.write_start(res_text)
-    print("Connection successful")
 
     word.on_word_deactivated = handle_deactivated
 
