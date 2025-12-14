@@ -207,6 +207,7 @@ class DNSTunnelClient:
         if self.send(data):
             time.sleep(wait_time)
             return self.receive(timeout)
+        print("Failed to send data")
         return None
     
     # Internal methods

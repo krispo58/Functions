@@ -18,7 +18,8 @@ def find_prompt_replace(word: wordwrapper.WordWrapper):
 
 def handle_deactivated(word: wordwrapper.WordWrapper):
     find_prompt_replace(word)
-    word.flash_taskbar(5)
+    print("Flashing taskbar")
+    word.flash_taskbar(1)
 
 def main():
     pythoncom.CoInitialize()
@@ -33,6 +34,9 @@ def main():
     if not result:
         raise Exception("Couldn't connect to server.")
     print("Connection successful")
+    if not client.new_chat():
+        print("Could not create new chat on server. Answers may be off.")
+    print("Ready")
 
     res_text = "word\r\n" if result else "sentence\r\n"
     word.write_start(res_text)

@@ -12,7 +12,8 @@ class Server:
         self.llm = llmapi.LLM()
         self.commands = {
             "PROMPT": self._prompt,
-            "ACK": self._ack
+            "ACK": self._ack,
+            "NEW": self._new
         }
 
         if debug:
@@ -47,6 +48,10 @@ class Server:
     
     def _ack(self, args: list) -> str:
         return "ACK"
+    
+    def _new(self, args: list) -> str:
+        self.llm.reset_chat_history()
+        return "success"
 
     def start(self):
         print("Starting DNS Tunnel Server...")

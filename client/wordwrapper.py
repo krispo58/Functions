@@ -79,10 +79,11 @@ class WordWrapper:
     def flash_taskbar(self, count: int = 3):
         """
         Triggers a taskbar attention flash on the Word icon.
-        Does NOT bring Word to the foreground.
+        Works even if Word is minimized and COM doesn't expose Hwnd.
         """
-        # Get Word main window handle
-        hwnd = self.word.Hwnd
+
+        # Find Word's main window (class name is always 'OpusApp')
+        hwnd = win32gui.FindWindow("OpusApp", None)
         if not hwnd:
             return False
 
@@ -107,6 +108,7 @@ class WordWrapper:
         )
 
         return ctypes.windll.user32.FlashWindowEx(ctypes.byref(info)) != 0
+
 
     def get_text(self, start: int = None, end: int = None, include_hidden: bool = False) -> str:
         """Get text from the document or range. Optionally include hidden text."""

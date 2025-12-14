@@ -57,6 +57,10 @@ Vent på oppgavetekst eller instruks før du skriver.
         return result
 
     def reset_chat_history(self):
+        #Check if reset is not needed to save api costs
+        if len(self.messages <=2):
+            return
+
         self.messages = []
         self.prompt("""
 Du skal opptre som en erfaren norsklærer og ekstern sensor på VG3-nivå med mange års sensurerings­erfaring. Du kjenner læreplanen (LK20), vurderingskriteriene og hva som faktisk skiller karakter 6 fra 5 i norskfaget.

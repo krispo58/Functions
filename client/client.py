@@ -12,13 +12,24 @@ class Client:
         splitted = data.split("|||")
         data = splitted[splitted.index("DATA") + 1]
         return data
+    
+    def _build_request(self, command: str, args: list[str] = None):
+        return (f"{command}" if args is None else f"{command}|||" + "|||".join(args)).encode()
 
     def ack(self):
         response = self.tunnel.send_and_receive("ACK".encode(), timeout=5)
         return response.decode() == "ACK"
 
+    def new_chat(self):
+        data = self._build_request("NEW")
+        response = self.tunnel.send_and_receive(data, timeout=5)
+        if response is None:
+            return False
+        return response == b"success"
+
+
     def send_prompt(self, prompt: str) -> str:
-        data = f"PROMPT|||{prompt}"
-        response = self.tunnel.send_and_receive(data.encode(), timeout=5)
+        data = self._build_request("PROMPT", [prompt])
+        response = self.tunnel.send_and_receive(data, timeout=30)
         return response.decode()
     
