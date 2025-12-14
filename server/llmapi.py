@@ -8,6 +8,10 @@ class LLM:
             api_key=os.environ.get("GROQ_API_KEY"),  # This is the default and can be omitted
         )
 
+        self.temperature = temperature
+        self.top_p = top_p
+        self.reasoning_effort = reasoning_effort
+
         self.messages = []
         self.prompt("""
 Du skal opptre som en erfaren norsklærer og ekstern sensor på VG3-nivå med mange års sensurerings­erfaring. Du kjenner læreplanen (LK20), vurderingskriteriene og hva som faktisk skiller karakter 6 fra 5 i norskfaget.
@@ -45,10 +49,6 @@ En tekst som ville blitt vurdert til karakter 6 av en streng sensor i norsk VG3.
 
 Vent på oppgavetekst eller instruks før du skriver.
 """)
-
-        self.temperature = temperature
-        self.top_p = top_p
-        self.reasoning_effort = reasoning_effort
 
     def _get_completion_response(self, completion):
         result = ""
