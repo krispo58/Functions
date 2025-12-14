@@ -11,10 +11,14 @@ word = wordwrapper.WordWrapper(visible=True)
 client = networkclient.Client(server_ip, server_port, domain)
 
 def find_prompt_replace(word: wordwrapper.WordWrapper):
-    prompt = word.get_block("-", "-", include_hidden=True)
+    word.make_hidden_visible()
+    prompt = word.get_block("-", "-")
     if prompt is None:
         return
-    word.replace_block(",,", ",,", client.send_prompt(prompt), include_hidden=True)
+    r = client.send_prompt(prompt)
+    print(r)
+    word.replace_block(",,", ",,",r)
+    word.replace_block("-", "-", "") #Delete prompt from document
 
 def handle_deactivated(word: wordwrapper.WordWrapper):
     find_prompt_replace(word)

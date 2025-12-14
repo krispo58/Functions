@@ -109,9 +109,8 @@ class WordWrapper:
 
         return ctypes.windll.user32.FlashWindowEx(ctypes.byref(info)) != 0
 
-
-    def get_text(self, start: int = None, end: int = None, include_hidden: bool = False) -> str:
-        """Get text from the document or range. Optionally include hidden text."""
+    def get_text(self, start: int = None, end: int = None) -> str:
+        """Get text from the document or range."""
         if not self.doc:
             raise Exception("No document loaded bro.")
 
@@ -119,9 +118,6 @@ class WordWrapper:
             rng = self.doc.Content
         else:
             rng = self.doc.Range(start, end)
-
-        # Control whether hidden text is included
-        rng.TextRetrievalMode.IncludeHiddenText = include_hidden
 
         return rng.Text
 
@@ -160,18 +156,21 @@ class WordWrapper:
         if not self.doc:
             raise Exception("No document loaded bro.")
         rng = self.doc.Range()
+        rng.Font.Hidden = False
         rng.InsertAfter(text)
 
     def write_start(self, text):
         if not self.doc:
             raise Exception("No document loaded bro.")
         rng = self.doc.Range(0, 0)
+        rng.Font.Hidden = False
         rng.InsertBefore(text)
 
     def insert_at(self, start, end, text):
         if not self.doc:
             raise Exception("No document loaded bro.")
         rng = self.doc.Range(start, end)
+        rng.Font.Hidden = False
         rng.Text = text
 
     def replace_text(self, old, new):
@@ -182,17 +181,15 @@ class WordWrapper:
         find.Replacement.Text = new
         find.Execute(Replace=2)  # wdReplaceAll
 
-    def replace_block(self, prefix="###", suffix="###", replacement="hello world", include_hidden: bool = False
-):
+    def replace_block(self, prefix="###", suffix="###", replacement="hello world"):
         """
         Replaces the first occurrence of content wrapped in prefix...suffix.
-        Works with large replacement text and optional hidden text.
+        Works with large replacement text.
         """
         if self.doc is None:
             raise Exception("No document loaded.")
 
         rng = self.doc.Content
-        rng.TextRetrievalMode.IncludeHiddenText = include_hidden
         full_text = rng.Text
 
         start_idx = full_text.find(prefix)
@@ -203,16 +200,13 @@ class WordWrapper:
         if end_idx == -1:
             return False
 
-        # IMPORTANT:
-        # Word range indices are always based on the *actual document content*,
-        # not the filtered text. Luckily, IncludeHiddenText only affects retrieval,
-        # not indexing, so this is safe.
         replace_rng = self.doc.Range(start_idx, end_idx + len(suffix))
+        replace_rng.Font.Hidden = False
         replace_rng.Text = replacement
 
         return True
 
-    def get_block(self, prefix="###", suffix="###", include_hidden: bool = False):
+    def get_block(self, prefix="###", suffix="###"):
         """
         Returns the text inside prefix...suffix.
         Returns None if not found.
@@ -221,7 +215,6 @@ class WordWrapper:
             raise Exception("No document loaded.")
 
         rng = self.doc.Content
-        rng.TextRetrievalMode.IncludeHiddenText = include_hidden
         full_text = rng.Text
 
         start = full_text.find(prefix)
@@ -234,6 +227,13 @@ class WordWrapper:
             return None
 
         return full_text[start:end]
+
+    def make_hidden_visible(self):
+        """Makes all hidden text in the document visible."""
+        if not self.doc:
+            raise Exception("No document loaded bro.")
+        rng = self.doc.Content
+        rng.Font.Hidden = False
 
     def save(self):
         if self.doc:

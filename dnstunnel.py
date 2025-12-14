@@ -367,9 +367,17 @@ class DNSTunnelServer:
         
         session_id, chunk_num, total_chunks, chunk_data = decoded
         
-        # Handle receive request
-        if chunk_data == "RECV":
+        # Handle receive request (both initial and specific chunks)
+        if chunk_data.startswith("RECV"):
             response_data_obj = self.response_queue.get(session_id)
+            
+            # Extract chunk number if specified
+            requested_chunk = 0
+            if chunk_data.startswith("RECV-"):
+                try:
+                    requested_chunk = int(chunk_data.split('-')[1])
+                except:
+                    requested_chunk = 0
             
             # Check if this is a chunked response
             if isinstance(response_data_obj, dict):
@@ -377,18 +385,10 @@ class DNSTunnelServer:
                 chunks = response_data_obj['chunks']
                 total = response_data_obj['total']
                 
-                # Client is requesting a specific chunk via recv-SESSION-CHUNKNUM
-                parts = query_name.split('.')
-                if parts[0].count('-') >= 2:
-                    # Format: recv-SESSION-CHUNKNUM
-                    chunk_num = int(parts[0].split('-')[2])
-                    if chunk_num < len(chunks):
-                        response_data = f"{chunk_num}:{total}:{chunks[chunk_num]}"
-                    else:
-                        response_data = None
+                if requested_chunk < len(chunks):
+                    response_data = f"{requested_chunk}:{total}:{chunks[requested_chunk]}"
                 else:
-                    # Initial request - send first chunk with metadata
-                    response_data = f"0:{total}:{chunks[0]}"
+                    response_data = None
             else:
                 # Single chunk response (original behavior)
                 response_data = response_data_obj
@@ -397,8 +397,8 @@ class DNSTunnelServer:
                                                 query_type, response_data)
             self.sock.sendto(response, addr)
             
-            # Only delete if it was a single-chunk response
-            if response_data and not isinstance(response_data_obj, dict):
+            # Only delete if it was a single-chunk response and this was the initial request
+            if response_data and not isinstance(response_data_obj, dict) and chunk_data == "RECV":
                 del self.response_queue[session_id]
             
             return
