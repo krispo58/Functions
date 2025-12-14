@@ -58,7 +58,7 @@ Vent på oppgavetekst eller instruks før du skriver.
 
     def reset_chat_history(self):
         #Check if reset is not needed to save api costs
-        if len(self.messages <=2):
+        if len(self.messages) <= 2:
             return
 
         self.messages = []
