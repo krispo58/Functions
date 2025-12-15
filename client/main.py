@@ -12,43 +12,64 @@ domain = "ordbokene.no"
 word = wordwrapper.WordWrapper(visible=True)
 client = networkclient.Client(server_ip, server_port, domain)
 word_is_open = True
-
+stop = False
 
 def reset(args: list[str]):
-    client.new_chat()
+    if client.new_chat():
+        word.write_start("word")
+    else:
+        word.write_start("sentence")
+
 
 def test(args: list[str]):
     word.write_end("t")
     word.replace_text("::test::", "")
 
+def stop_program(args: list[str]):
+    global stop
+    stop = True
+
 commands = {
+    "stop": stop_program,
+    "new": reset,
     "reset": reset,
     "test": test
 }
 def find_prompt_replace(word: wordwrapper.WordWrapper):
     word.make_hidden_visible()
-    prompt = word.get_block("-", "-")
+    prompt = word.get_block("--", "--")
+    prompt = prompt if isinstance(prompt, str) else prompt[0]
+
     if prompt is None:
         return
     r = client.send_prompt(prompt)
+    word.replace_blocks(f"--", "--", "") #Delete prompt from document
     word.replace_block(",,", ",,", r)
-    word.replace_text(f"-{prompt}-", "") #Delete prompt from document
 
 def handle_deactivated(word: wordwrapper.WordWrapper):
     global word_is_open
 
-    prompt = word.get_block("--", "--") is not None
-    command = word.get_block("::", "::")
-
     try:
+        word.make_hidden_visible()
+        word.replace_blocks("", ";;;", "")
+
+        prompt = word.get_block("--", "--") is not None
+        command = word.get_block("::", "::")
+        
+        print(prompt, command)
+
+
         if prompt:
                 find_prompt_replace(word)
-                print("Flashing taskbar")
-                word.flash_taskbar(1)
         if command is not None:
+            command = command if isinstance(command, str) else command[0]
             commands[command]([word.get_block(",,", ",,")])
+            word.replace_blocks("::", "::", "")
+        print("Flashing taskbar")
+        word.flash_taskbar(1)
     except pywintypes.com_error as e:
         print("Word disconnected, waiting for reconnect...")
+        print(e)
         word_is_open = False
 
 def main():
@@ -74,12 +95,17 @@ def main():
 
     word.on_word_deactivated = handle_deactivated
 
-    while True:
+    while not stop:
         while word_is_open:
+            #Main loop
+            if stop:
+                break
             pythoncom.PumpWaitingMessages()
 
         #If execution reaches here, word got disconnected
         while True:
+            if stop:
+                break
             time.sleep(1)
             if word.try_reconnect():
                 print("Word reconnected")

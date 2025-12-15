@@ -182,12 +182,95 @@ class WordWrapper:
         rng.Text = text
 
     def replace_text(self, old, new):
+        """
+        Replaces all occurrences of old text with new text.
+        Works with long replacement text by using Range.Text instead of Find.Replacement.
+        """
         if not self.doc:
             raise Exception("No document loaded bro.")
-        find = self.doc.Content.Find
-        find.Text = old
-        find.Replacement.Text = new
-        find.Execute(Replace=2)  # wdReplaceAll
+        
+        rng = self.doc.Content
+        full_text = rng.Text
+        
+        # If old text not found, return early
+        if old not in full_text:
+            return False
+        
+        # Find and replace each occurrence
+        while True:
+            full_text = self.doc.Content.Text
+            start_idx = full_text.find(old)
+            
+            if start_idx == -1:
+                break
+            
+            # Replace using Range.Text for long text support
+            replace_rng = self.doc.Range(start_idx, start_idx + len(old))
+            replace_rng.Font.Hidden = False
+            replace_rng.Text = new
+        
+        return True
+
+    def replace_blocks(self, prefix="###", suffix="###", replacement="hello world"):
+        """
+        Replaces all occurrences of content wrapped in prefix...suffix.
+        Works with large replacement text.
+        """
+        if self.doc is None:
+            raise Exception("No document loaded.")
+
+        replaced_count = 0
+        
+        while True:
+            rng = self.doc.Content
+            full_text = rng.Text
+
+            start_idx = full_text.find(prefix)
+            if start_idx == -1:
+                break
+
+            end_idx = full_text.find(suffix, start_idx + len(prefix))
+            if end_idx == -1:
+                break
+
+            replace_rng = self.doc.Range(start_idx, end_idx + len(suffix))
+            replace_rng.Font.Hidden = False
+            replace_rng.Text = replacement
+            replaced_count += 1
+
+        return replaced_count
+
+    def get_blocks(self, prefix="###", suffix="###", ):
+        """
+        Returns a list of all text content inside prefix...suffix blocks.
+        Returns None list if none found.
+        """
+        if self.doc is None:
+            raise Exception("No document loaded.")
+
+        rng = self.doc.Content
+        full_text = rng.Text
+        
+        blocks = []
+        search_pos = 0
+        
+        while True:
+            start = full_text.find(prefix, search_pos)
+            if start == -1:
+                break
+            
+            start += len(prefix)
+            end = full_text.find(suffix, start)
+            if end == -1:
+                break
+            
+            blocks.append(full_text[start:end])
+            search_pos = end + len(suffix)
+
+        if len(blocks) == 0:
+            return None
+
+        return blocks
 
     def replace_block(self, prefix="###", suffix="###", replacement="hello world"):
         """
@@ -216,7 +299,7 @@ class WordWrapper:
 
     def get_block(self, prefix="###", suffix="###"):
         """
-        Returns the text inside prefix...suffix.
+        Returns the text inside  the first occurance of prefix...suffix.
         Returns None if not found.
         """
         if self.doc is None:
