@@ -3,7 +3,7 @@ from groq import Groq
 
 class LLM:
     def __init__(self, model: str = "openai/gpt-oss-120b", temperature: float = 0.4, top_p: float = 0.9, reasoning_effort: str = "medium"):
-        os.environ["GROQ_API_KEY"] = "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"  # Replace with your actual API key
+        import api_key  # Ensure the API key is set
         self.client = Groq(
             api_key=os.environ.get("GROQ_API_KEY"),  # This is the default and can be omitted
         )
