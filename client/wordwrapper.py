@@ -76,6 +76,14 @@ class WordWrapper:
             win32con.WINEVENT_OUTOFCONTEXT
         )
 
+    def try_reconnect(self):
+        try:
+            self.word = win32.GetActiveObject("Word.Application")
+            self.use_active_doc()
+            return True
+        except:
+            return False
+
     def flash_taskbar(self, count: int = 3):
         """
         Triggers a taskbar attention flash on the Word icon.
