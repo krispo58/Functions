@@ -17,12 +17,12 @@ class Client:
         return (f"{command}" if args is None else f"{command}|||" + "|||".join(args)).encode()
 
     def ack(self):
-        response = self.tunnel.send_and_receive("ACK".encode(), timeout=5)
+        response = self.tunnel.send_and_receive("ACK".encode(), timeout=10)
         return response.decode() == "ACK"
 
     def new_chat(self):
         data = self._build_request("NEW")
-        response = self.tunnel.send_and_receive(data, timeout=5)
+        response = self.tunnel.send_and_receive(data, timeout=10)
         if response is None:
             return False
         return response == b"success"
