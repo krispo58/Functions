@@ -4,7 +4,7 @@ import time
 import threading
 import uuid
 from typing import Callable, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 
 class FirebaseTransport:
     """
@@ -12,19 +12,23 @@ class FirebaseTransport:
     Supports bidirectional communication through firebase.googleapis.com
     """
     
-    def __init__(self, database_url: str, auth_token: Optional[str] = None):
+    def __init__(self, database_url: str, auth_token: Optional[str] = None, session_timeout: float = 30.0):
         """
         Initialize the Firebase transport layer.
         
         Args:
             database_url: Firebase Realtime Database URL (e.g., https://your-project.firebaseio.com)
             auth_token: Optional Firebase auth token or database secret
+            session_timeout: Seconds before a client session expires (default 30s)
         """
         self.database_url = database_url.rstrip('/')
         self.auth_token = auth_token
         self.client_id = str(uuid.uuid4())
+        self.session_timeout = session_timeout
+        self.last_heartbeat = time.time()
         self.running = False
         self.listener_thread = None
+        self.heartbeat_thread = None
         self.message_handlers = []
         self.last_message_id = None
         
@@ -49,11 +53,13 @@ class FirebaseTransport:
         """
         message = {
             'id': str(uuid.uuid4()),
-            'timestamp': datetime.utcnow().isoformat(),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
             'sender': self.client_id,
+            'sender_session': self._get_session_id(),
             'data': data,
             'metadata': metadata or {}
         }
+        self.last_heartbeat = time.time()
         
         try:
             url = self._get_url(f"channels/{channel}/messages")
@@ -81,20 +87,23 @@ class FirebaseTransport:
             Dict: Message data or None if timeout/error
         """
         start_time = time.time()
+        seen_ids = set()
         
         while True:
             try:
                 url = self._get_url(f"channels/{channel}/messages")
-                url += "&orderBy=\"$key\"&limitToLast=1"
                 response = requests.get(url, timeout=5)
                 
                 if response.status_code == 200:
                     messages = response.json()
                     if messages:
-                        msg_id, msg_data = list(messages.items())[0]
-                        if msg_id != self.last_message_id and msg_data['sender'] != self.client_id:
-                            self.last_message_id = msg_id
-                            return msg_data
+                        for msg_id, msg_data in sorted(messages.items(), 
+                                                       key=lambda x: x[1].get('timestamp', '')):
+                            if msg_id not in seen_ids and msg_data['sender'] != self.client_id:
+                                # Only accept messages from active sessions
+                                if self._is_session_active(msg_data.get('sender_session')):
+                                    seen_ids.add(msg_id)
+                                    return msg_data
                 
                 if timeout and (time.time() - start_time) > timeout:
                     return None
@@ -137,16 +146,11 @@ class FirebaseTransport:
     
     def _listen_loop(self, channel: str, poll_interval: float):
         """Internal listening loop."""
-        last_check = None
+        seen_ids = set()
         
         while self.running:
             try:
                 url = self._get_url(f"channels/{channel}/messages")
-                if last_check:
-                    url += f'&orderBy="timestamp"&startAt="{last_check}"'
-                else:
-                    url += '&orderBy="timestamp"&limitToLast=10'
-                
                 response = requests.get(url, timeout=5)
                 
                 if response.status_code != 200:
@@ -160,14 +164,21 @@ class FirebaseTransport:
                     if messages:
                         for msg_id, msg_data in sorted(messages.items(), 
                                                        key=lambda x: x[1].get('timestamp', '')):
-                            if msg_data['sender'] != self.client_id:
-                                for handler in self.message_handlers:
-                                    try:
-                                        handler(msg_data)
-                                    except Exception as e:
-                                        print(f"Handler error: {e}")
-                        
-                        last_check = list(messages.values())[-1]['timestamp']
+                            if msg_id not in seen_ids and msg_data['sender'] != self.client_id:
+                                # Only process messages from active client sessions
+                                if self._is_session_active(msg_data.get('sender_session')):
+                                    seen_ids.add(msg_id)
+                                    message_processed = False
+                                    for handler in self.message_handlers:
+                                        try:
+                                            handler(msg_data)
+                                            message_processed = True
+                                        except Exception as e:
+                                            print(f"Handler error: {e}")
+                                    
+                                    # Delete message after successful processing
+                                    if message_processed:
+                                        self._delete_message(channel, msg_id)
                 
                 time.sleep(poll_interval)
                 
@@ -180,6 +191,75 @@ class FirebaseTransport:
         self.running = False
         if self.listener_thread:
             self.listener_thread.join(timeout=5)
+        if self.heartbeat_thread:
+            self.heartbeat_thread.join(timeout=5)
+    
+    def start_heartbeat(self):
+        """Start sending periodic heartbeats to keep session alive."""
+        if self.heartbeat_thread:
+            return
+        
+        self.heartbeat_thread = threading.Thread(
+            target=self._heartbeat_loop,
+            daemon=True
+        )
+        self.heartbeat_thread.start()
+    
+    def _heartbeat_loop(self):
+        """Periodically update heartbeat timestamp."""
+        while self.running:
+            self.last_heartbeat = time.time()
+            time.sleep(max(self.session_timeout / 3, 1.0))  # Update 3x per timeout period
+    
+    def _get_session_id(self) -> str:
+        """Get a session ID based on client ID and heartbeat status."""
+        return f"{self.client_id}:{int(self.last_heartbeat)}"
+    
+    def _is_session_active(self, session_id: Optional[str]) -> bool:
+        """Check if a session is still active based on heartbeat age."""
+        if not session_id:
+            return True  # Accept messages without session info for backwards compatibility
+        
+        try:
+            sender_id, heartbeat_time = session_id.rsplit(':', 1)
+            heartbeat_age = time.time() - int(heartbeat_time)
+            return heartbeat_age < self.session_timeout
+        except (ValueError, IndexError):
+            return True  # Invalid session format, accept it
+    
+    def _cleanup_old_messages(self, channel: str, keep_count: int = 50):
+        """Remove old messages from channel to prevent database bloat."""
+        try:
+            url = self._get_url(f"channels/{channel}/messages")
+            response = requests.get(url, timeout=5)
+            
+            if response.status_code == 200:
+                messages = response.json()
+                if messages and len(messages) > keep_count:
+                    # Sort by timestamp and keep only the newest messages
+                    sorted_msgs = sorted(messages.items(), 
+                                        key=lambda x: x[1].get('timestamp', ''))
+                    to_delete = sorted_msgs[:-keep_count]
+                    
+                    for msg_id, _ in to_delete:
+                        try:
+                            delete_url = self._get_url(f"channels/{channel}/messages/{msg_id}")
+                            requests.delete(delete_url, timeout=5)
+                        except Exception:
+                            pass  # Ignore individual delete errors
+        except Exception as e:
+            # Silently ignore cleanup errors
+            pass
+    
+    def _delete_message(self, channel: str, message_id: str) -> bool:
+        """Delete a specific message from a channel."""
+        try:
+            url = self._get_url(f"channels/{channel}/messages/{message_id}")
+            response = requests.delete(url, timeout=5)
+            return response.status_code == 200
+        except Exception as e:
+            print(f"Delete message error: {e}")
+            return False
     
     def clear_channel(self, channel: str) -> bool:
         """
@@ -223,7 +303,7 @@ class EchoServer:
             response = {
                 'type': 'pong',
                 'original': data.get('message', ''),
-                'server_time': datetime.utcnow().isoformat()
+                'server_time': datetime.now(timezone.utc).isoformat()
             }
         elif data.get('type') == 'echo':
             response = {
@@ -245,14 +325,18 @@ class EchoServer:
                 'message': 'Unknown request type'
             }
         
-        # Send response back
-        self.transport.send('client-channel', response)
-        print(f"[SERVER] Sent response: {response}")
+        # Only send response if client session is still active
+        if self.transport._is_session_active(msg.get('sender_session')):
+            self.transport.send('client-channel', response)
+            print(f"[SERVER] Sent response: {response}")
+        else:
+            print(f"[SERVER] Ignored request from expired session: {msg['sender'][:8]}")
     
     def start(self):
         """Start the server listening loop."""
         print("[SERVER] Starting server...")
         self.transport.start_listening('server-channel', poll_interval=0.5)
+        self.transport.start_heartbeat()  # Keep session alive
         print("[SERVER] Listening on 'server-channel'")
         print("[SERVER] Press Ctrl+C to stop")
         
@@ -292,6 +376,7 @@ class TestClient:
         """Run a series of test requests."""
         print("[CLIENT] Starting listener...")
         self.transport.start_listening('client-channel', poll_interval=0.5)
+        self.transport.start_heartbeat()  # Keep session alive
         print("[CLIENT] Listening on 'client-channel'")
         
         time.sleep(1)  # Wait for listener to initialize

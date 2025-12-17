@@ -1,5 +1,5 @@
 import server as networkserver
 
-server = networkserver.Server(7777, debug=True)
+server = networkserver.Server("https://my-awesome-project-3c43d-default-rtdb.europe-west1.firebasedatabase.app/", debug=True)
 
 server.start()

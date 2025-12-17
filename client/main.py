@@ -5,12 +5,12 @@ import pythoncom
 import pywintypes
 
 
-server_ip = "51.175.238.64"
-server_port = 7777
-domain = "ordbokene.no"
+#server_ip ="51.175.238.64"
+#server_port = 7777
+#domain = "ordbokene.no"
 
 word = wordwrapper.WordWrapper(visible=True)
-client = networkclient.Client(server_ip, server_port, domain)
+client = networkclient.Client("https://my-awesome-project-3c43d-default-rtdb.europe-west1.firebasedatabase.app/")
 word_is_open = True
 stop = False
 
