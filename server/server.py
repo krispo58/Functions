@@ -1,45 +1,84 @@
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
-import firebasetunnel
-import llmapi
+import uuid
 import time
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
+import firebase_transport
+import llmapi
 
 class Server:
-    def __init__(self, database_url: str, auth_token: str = None, debug: bool = False):
+    SESSION_TIMEOUT = 60  # seconds, session expires if no heartbeat
+
+    def __init__(self, debug: bool = False):
         self.debug = debug
-        self.tunnel = firebasetunnel.FirebaseTransport(database_url, auth_token)
+        self.tunnel = firebase_transport.FirebaseTransport(
+            os.environ.get("FIREBASE_PROJECT_ID"),
+            password=os.environ.get("FIREBASE_PASSWORD")
+        )
         self.llm = llmapi.LLM()
         self.commands = {
             "PROMPT": self._prompt,
             "ACK": self._ack,
-            "NEW": self._new
+            "NEW": self._new,
+            "HEARTBEAT": self._heartbeat
         }
+
+        # session_id -> last_seen_timestamp
+        self.active_sessions = {}
+
         if debug:
-            print(f"Server initialized with Firebase: {database_url}")
+            print(f"[SERVER INIT] FirebaseTransport initialized")
             print(f"Server ID: {self.tunnel.client_id}")
-    
+
+    # ----------------------
+    # Message parsing
+    # ----------------------
     def _parse_data(self, data: dict) -> tuple:
-        """Parse the incoming message data."""
-        # Firebase sends structured data, not raw strings
+        """Parse incoming message data."""
         command = data.get("command", "")
         args = data.get("args", [])
-        return (command, args)
-    
+        return command, args
+
+    # ----------------------
+    # Session management
+    # ----------------------
+    def _update_session(self, sender_session: str):
+        """Update or create session heartbeat."""
+        self.active_sessions[sender_session] = time.time()
+        if self.debug:
+            print(f"[SESSION] Updated session {sender_session[:8]}")
+
+    def _is_session_active(self, sender_session: str) -> bool:
+        """Check if a session is still active."""
+        last_seen = self.active_sessions.get(sender_session)
+        if not last_seen:
+            return False
+        if time.time() - last_seen > self.SESSION_TIMEOUT:
+            del self.active_sessions[sender_session]
+            if self.debug:
+                print(f"[SESSION] Expired session {sender_session[:8]}")
+            return False
+        return True
+
+    # ----------------------
+    # Request handling
+    # ----------------------
     def _handle_request(self, msg: dict):
         """Handle incoming request message."""
         sender = msg['sender']
-        sender_session = msg.get('sender_session')
+        sender_session = msg.get('sender_session', str(uuid.uuid4()))
         data = msg['data']
-        
+
+        # heartbeat/session tracking
+        self._update_session(sender_session)
+
         if self.debug:
-            print(f"Received data from {sender[:8]}: {data}")
-        
-        # Parse command and args
+            print(f"[RECV] From {sender[:8]} (session {sender_session[:8]}): {data}")
+
         command, args = self._parse_data(data)
-        print(f"Handling command: {command} with args: {args}")
-        
-        # Execute command
+        if self.debug:
+            print(f"[HANDLE] Command: {command}, Args: {args}")
+
         try:
             response_data = self.commands[command](args)
             response = {
@@ -59,41 +98,56 @@ class Server:
                 "error": str(e),
                 "command": command
             }
-        
-        # Send response back to client
-        # Only if client session is still active
-        if self.tunnel._is_session_active(sender_session):
+
+        # Only send to active sessions
+        if self._is_session_active(sender_session):
+            response['sender_session'] = sender_session
             self.tunnel.send('client-channel', response)
             if self.debug:
-                print(f"Sent response: {response}")
+                print(f"[SEND] Response sent: {response}")
         else:
-            print(f"Ignored request from expired session: {sender[:8]}")
-    
+            if self.debug:
+                print(f"[SEND] Skipped response for expired session {sender_session[:8]}")
+
+    # ----------------------
+    # Commands
+    # ----------------------
     def _prompt(self, args: list) -> str:
-        print("Processing PROMPT command... arguments:", args)
         prompt_content = args[0]
         response = self.llm.prompt(prompt_content)
-        print("LLM response:", response[:100] + "..." if len(response) > 100 else response)
+        if self.debug:
+            print(f"[PROMPT] LLM response: {response[:100]}{'...' if len(response) > 100 else ''}")
         return response
-    
+
     def _ack(self, args: list) -> str:
         return "ACK"
-    
+
     def _new(self, args: list) -> str:
         self.llm.reset_chat_history()
         return "success"
-    
+
+    def _heartbeat(self, args: list) -> str:
+        return "alive"
+
+    # ----------------------
+    # Start server
+    # ----------------------
     def start(self):
-        print("Starting Firebase Tunnel Server...")
+        print("[SERVER] Starting Firebase Tunnel Server...")
         self.tunnel.on_message(self._handle_request)
         self.tunnel.start_listening('server-channel', poll_interval=0.5)
-        self.tunnel.start_heartbeat()  # Keep server session alive
-        print("Firebase Tunnel Server started.")
-        print("Listening on 'server-channel'")
-        print("Press Ctrl+C to stop")
-        
+        print("[SERVER] Server started.")
+        print("Listening on 'server-channel'. Press Ctrl+C to stop.")
+
         try:
             while True:
+                # Cleanup expired sessions periodically
+                now = time.time()
+                for session, last_seen in list(self.active_sessions.items()):
+                    if now - last_seen > self.SESSION_TIMEOUT:
+                        del self.active_sessions[session]
+                        if self.debug:
+                            print(f"[SESSION] Expired session {session[:8]} cleaned up")
                 time.sleep(1)
         except KeyboardInterrupt:
             print("\n[SERVER] Shutting down...")

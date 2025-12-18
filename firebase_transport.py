@@ -1,33 +1,28 @@
 import requests
-import json
 import time
 import threading
 import uuid
 from typing import Callable, Optional, Dict, Any
 from datetime import datetime, timezone
 
-
 class FirebaseTransport:
     """
-    Firestore REST transport using ONLY Firestore security rules.
-    No API key. No OAuth. No service accounts.
+    Transport layer for Firebase Firestore.
+    Supports sending, receiving, and async listening with auto-cleanup.
     """
-
+    
     def __init__(self, project_id: str, password: str = "GigaPassword"):
         self.project_id = project_id
         self.password = password
-        self.base_url = (
-            f"https://firestore.googleapis.com/v1/projects/"
-            f"{project_id}/databases/(default)/documents"
-        )
+        self.base_url = f"https://firestore.googleapis.com/v1/projects/{project_id}/databases/(default)/documents"
         self.client_id = str(uuid.uuid4())
         self.running = False
         self.listener_thread = None
         self.message_handlers = []
 
-    def _get_headers(self) -> Dict[str, str]:
-        return {'Content-Type': 'application/json'}
-
+    # ----------------------
+    # Firestore value helpers
+    # ----------------------
     def _to_firestore_value(self, data: Any) -> Dict:
         if isinstance(data, str):
             return {'stringValue': data}
@@ -43,42 +38,48 @@ class FirebaseTransport:
             return {'arrayValue': {'values': [self._to_firestore_value(v) for v in data]}}
         elif data is None:
             return {'nullValue': None}
-        return {'stringValue': str(data)}
+        else:
+            return {'stringValue': str(data)}
 
     def _from_firestore_value(self, value: Dict) -> Any:
         if 'stringValue' in value:
             return value['stringValue']
-        if 'booleanValue' in value:
+        elif 'booleanValue' in value:
             return value['booleanValue']
-        if 'integerValue' in value:
+        elif 'integerValue' in value:
             return int(value['integerValue'])
-        if 'doubleValue' in value:
+        elif 'doubleValue' in value:
             return value['doubleValue']
-        if 'mapValue' in value:
-            return {k: self._from_firestore_value(v)
-                    for k, v in value['mapValue'].get('fields', {}).items()}
-        if 'arrayValue' in value:
-            return [self._from_firestore_value(v)
-                    for v in value['arrayValue'].get('values', [])]
-        if 'timestampValue' in value:
+        elif 'mapValue' in value:
+            return {k: self._from_firestore_value(v) for k, v in value['mapValue'].get('fields', {}).items()}
+        elif 'arrayValue' in value:
+            return [self._from_firestore_value(v) for v in value['arrayValue'].get('values', [])]
+        elif 'nullValue' in value:
+            return None
+        elif 'timestampValue' in value:
             return value['timestampValue']
-        return None
-    
+        else:
+            return None
+
+    def _get_headers(self) -> Dict[str, str]:
+        return {'Content-Type': 'application/json'}
+
     def _delete_message(self, doc_name: str) -> bool:
-        """Delete a single document by its full Firestore path."""
         try:
             url = f"https://firestore.googleapis.com{doc_name.split('firestore.googleapis.com')[-1]}"
-            url = self._add_api_key(url)
             response = requests.delete(url, headers=self._get_headers(), timeout=5)
             return response.status_code in (200, 204)
         except Exception as e:
             print(f"Delete error: {e}")
             return False
 
+    # ----------------------
+    # Send & receive
+    # ----------------------
     def send(self, channel: str, data: Any) -> bool:
         message_id = str(uuid.uuid4())
         timestamp = datetime.now(timezone.utc).isoformat()
-
+        document_id = f"{channel}_{message_id}"
         document = {
             'fields': {
                 'key': self._to_firestore_value(self.password),
@@ -86,47 +87,37 @@ class FirebaseTransport:
                 'channel': self._to_firestore_value(channel),
                 'timestamp': {'timestampValue': timestamp},
                 'sender': self._to_firestore_value(self.client_id),
-                'data': self._to_firestore_value(data),
+                'data': self._to_firestore_value(data)
             }
         }
-
-        url = f"{self.base_url}/messages?documentId={channel}_{message_id}"
-        r = requests.post(url, headers=self._get_headers(), json=document, timeout=10)
-        print("SEND STATUS:", r.status_code, r.text)
-        return r.status_code in (200, 201)
-
+        try:
+            url = f"{self.base_url}/messages?documentId={document_id}"
+            response = requests.post(url, headers=self._get_headers(), json=document, timeout=10)
+            if response.status_code not in [200, 201]:
+                print(f"SEND STATUS: {response.status_code} {response.text}")
+            return response.status_code in [200, 201]
+        except Exception as e:
+            print(f"Send error: {e}")
+            return False
 
     def receive(self, channel: str, timeout: Optional[float] = None) -> Optional[Dict]:
         start_time = time.time()
         last_seen_id = None
-
         while True:
             try:
                 url = f"{self.base_url}/messages"
-                url = self._add_api_key(url)
                 response = requests.get(url, headers=self._get_headers(), timeout=5)
-
                 if response.status_code == 200:
-                    result = response.json()
-                    documents = result.get("documents", [])
-
+                    documents = response.json().get("documents", [])
                     channel_docs = []
                     for doc in documents:
                         fields = doc.get("fields", {})
-                        doc_channel = self._from_firestore_value(fields.get("channel", {}))
-                        if doc_channel == channel:
+                        if self._from_firestore_value(fields.get("channel", {})) == channel:
                             channel_docs.append((doc, fields))
-
-                    # Sort by timestamp (newest first)
-                    channel_docs.sort(
-                        key=lambda x: self._from_firestore_value(x[1].get("timestamp", {})),
-                        reverse=True
-                    )
-
+                    channel_docs.sort(key=lambda x: self._from_firestore_value(x[1].get("timestamp", {})), reverse=True)
                     for doc, fields in channel_docs:
                         msg_id = self._from_firestore_value(fields.get("id", {}))
                         sender = self._from_firestore_value(fields.get("sender", {}))
-
                         if msg_id != last_seen_id and sender != self.client_id:
                             last_seen_id = msg_id
                             message = {
@@ -134,24 +125,79 @@ class FirebaseTransport:
                                 "timestamp": self._from_firestore_value(fields.get("timestamp", {})),
                                 "sender": sender,
                                 "data": self._from_firestore_value(fields.get("data", {})),
-                                "metadata": self._from_firestore_value(fields.get("metadata", {}))
+                                "doc_name": doc.get("name")
                             }
-
                             # Auto-cleanup
-                            doc_name = doc.get("name")
-                            if doc_name:
-                                self._delete_message(doc_name)
-
+                            if message.get("doc_name"):
+                                self._delete_message(message["doc_name"])
                             return message
-
                 if timeout and (time.time() - start_time) > timeout:
                     return None
-
                 time.sleep(0.5)
             except Exception as e:
                 print(f"Receive error: {e}")
                 if timeout and (time.time() - start_time) > timeout:
                     return None
+                time.sleep(1)
+
+    # ----------------------
+    # Listener (async)
+    # ----------------------
+    def _listen_loop(self, channel: str, poll_interval: float):
+        seen_ids = set()
+        while self.running:
+            try:
+                url = f"{self.base_url}/messages"
+                response = requests.get(url, headers=self._get_headers(), timeout=5)
+                if response.status_code == 200:
+                    documents = response.json().get("documents", [])
+                    channel_docs = []
+                    for doc in documents:
+                        fields = doc.get("fields", {})
+                        if self._from_firestore_value(fields.get("channel", {})) == channel:
+                            channel_docs.append((doc, fields))
+                    channel_docs.sort(key=lambda x: self._from_firestore_value(x[1].get("timestamp", {})))
+                    new_messages = []
+                    for doc, fields in channel_docs:
+                        msg_id = self._from_firestore_value(fields.get("id", {}))
+                        sender = self._from_firestore_value(fields.get("sender", {}))
+                        if msg_id not in seen_ids and sender != self.client_id:
+                            seen_ids.add(msg_id)
+                            new_messages.append({
+                                "id": msg_id,
+                                "timestamp": self._from_firestore_value(fields.get("timestamp", {})),
+                                "sender": sender,
+                                "data": self._from_firestore_value(fields.get("data", {})),
+                                "doc_name": doc.get("name")
+                            })
+                    for msg in new_messages:
+                        for handler in self.message_handlers:
+                            try:
+                                handler(msg)
+                            except Exception as e:
+                                print(f"Handler error: {e}")
+                        if msg.get("doc_name"):
+                            self._delete_message(msg["doc_name"])
+                time.sleep(poll_interval)
+            except Exception as e:
+                print(f"Listen error: {e}")
+                time.sleep(poll_interval)
+
+    def on_message(self, handler: Callable[[Dict], None]):
+        self.message_handlers.append(handler)
+
+    def start_listening(self, channel: str, poll_interval: float = 2.0):
+        if self.running:
+            return
+        self.running = True
+        self.listener_thread = threading.Thread(
+            target=self._listen_loop,
+            args=(channel, poll_interval),
+            daemon=True
+        )
+        self.listener_thread.start()
 
     def stop_listening(self):
         self.running = False
+        if self.listener_thread:
+            self.listener_thread.join(timeout=5)

@@ -1,78 +1,111 @@
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
-import firebasetunnel
 import time
 import threading
+import uuid
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
+import firebase_transport
 
 class Client:
-    def __init__(self, database_url: str, auth_token: str = None):
-        self.tunnel = firebasetunnel.FirebaseTransport(database_url, auth_token)
+    HEARTBEAT_INTERVAL = 10  # seconds
+
+    def __init__(self, debug: bool = False):
+        self.debug = debug
+        self.client_id = str(uuid.uuid4())
+        self.sender_session = str(uuid.uuid4())
+
+        self.tunnel = firebase_transport.FirebaseTransport(
+            os.environ.get("FIREBASE_PROJECT_ID"),
+            password=os.environ.get("FIREBASE_PASSWORD")
+        )
         self.tunnel.on_message(self._handle_response)
-        
-        # Start listening for responses
-        self.tunnel.start_listening('client-channel', poll_interval=0.5)
-        self.tunnel.start_heartbeat()
-        
+
         # Response handling
         self.pending_response = None
         self.response_event = threading.Event()
-        
+
+        # Start listening
+        self.tunnel.start_listening('client-channel', poll_interval=0.5)
+
+        # Start heartbeat thread
+        self.heartbeat_thread = threading.Thread(target=self._heartbeat_loop, daemon=True)
+        self.heartbeat_thread.start()
+
         # Give listener time to initialize
         time.sleep(0.5)
-    
+
+    # ----------------------
+    # Heartbeat
+    # ----------------------
+    def _heartbeat_loop(self):
+        while True:
+            try:
+                self._send_command("HEARTBEAT", [])
+            except Exception as e:
+                if self.debug:
+                    print(f"[HEARTBEAT] Error: {e}")
+            time.sleep(self.HEARTBEAT_INTERVAL)
+
+    # ----------------------
+    # Message handling
+    # ----------------------
     def _handle_response(self, msg: dict):
         """Handle incoming response from server."""
+        # Only accept messages for our session
+        if msg.get("sender_session") != self.sender_session:
+            return
+
         data = msg['data']
         self.pending_response = data
         self.response_event.set()
-    
-    def _send_and_wait(self, command: str, args: list = None, timeout: float = 30) -> dict:
-        """Send command and wait for response."""
-        # Clear previous response
-        self.pending_response = None
-        self.response_event.clear()
-        
-        # Build and send request
+
+    def _send_command(self, command: str, args: list = None):
+        """Send a command to the server."""
         request = {
             "command": command,
-            "args": args or []
+            "args": args or [],
+            "sender_session": self.sender_session,
+            "sender": self.client_id
         }
-        self.tunnel.send('server-channel', request)
-        
-        # Wait for response
+        return self.tunnel.send('server-channel', request)
+
+    # ----------------------
+    # Public API
+    # ----------------------
+    def _send_and_wait(self, command: str, args: list = None, timeout: float = 30):
+        """Send command and wait for response."""
+        self.pending_response = None
+        self.response_event.clear()
+
+        self._send_command(command, args)
+
         if self.response_event.wait(timeout=timeout):
             return self.pending_response
         else:
+            if self.debug:
+                print(f"[TIMEOUT] Command {command} timed out")
             return None
-    
+
     def ack(self) -> bool:
-        """Test connection with ACK command."""
         response = self._send_and_wait("ACK", timeout=10)
-        if response is None:
-            return False
-        return response.get("status") == "success" and response.get("data") == "ACK"
-    
+        return response is not None and response.get("status") == "success" and response.get("data") == "ACK"
+
     def new_chat(self) -> bool:
-        """Start a new chat session."""
         response = self._send_and_wait("NEW", timeout=10)
-        if response is None:
-            return False
-        return response.get("status") == "success" and response.get("data") == "success"
-    
+        return response is not None and response.get("status") == "success" and response.get("data") == "success"
+
     def send_prompt(self, prompt: str) -> str:
-        """Send a prompt to the LLM and get response."""
         response = self._send_and_wait("PROMPT", [prompt], timeout=30)
         if response is None:
             return None
-        
+
         if response.get("status") == "success":
             return response.get("data")
         else:
             error = response.get("error", "Unknown error")
-            print(f"Error: {error}")
+            print(f"[ERROR] {error}")
             return None
-    
+
     def close(self):
         """Clean up and stop listening."""
         self.tunnel.stop_listening()

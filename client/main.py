@@ -3,6 +3,11 @@ import client as networkclient
 import wordwrapper
 import pythoncom
 import pywintypes
+import os
+
+os.environ["FIREBASE_PROJECT_ID"] = "my-awesome-project-3c43d"
+os.environ["FIREBASE_PASSWORD"] = "GigaPassword"
+
 
 
 #server_ip ="51.175.238.64"
@@ -10,7 +15,7 @@ import pywintypes
 #domain = "ordbokene.no"
 
 word = wordwrapper.WordWrapper(visible=True)
-client = networkclient.Client("https://my-awesome-project-3c43d-default-rtdb.europe-west1.firebasedatabase.app/")
+client = networkclient.Client(debug=True)
 word_is_open = True
 stop = False
 
