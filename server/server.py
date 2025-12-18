@@ -12,9 +12,9 @@ class Server:
     def __init__(self, debug: bool = False):
         self.debug = debug
         self.tunnel = firebase_transport.FirebaseTransport(
-            os.environ.get("FIREBASE_PROJECT_ID"),
-            password=os.environ.get("FIREBASE_PASSWORD")
+            os.environ.get("FIREBASE_PROJECT_ID")
         )
+        self.tunnel.debug = debug
         self.llm = llmapi.LLM()
         self.commands = {
             "PROMPT": self._prompt,
@@ -65,9 +65,11 @@ class Server:
     # ----------------------
     def _handle_request(self, msg: dict):
         """Handle incoming request message."""
-        sender = msg['sender']
-        sender_session = msg.get('sender_session', str(uuid.uuid4()))
-        data = msg['data']
+        sender = msg.get('sender', 'unknown')
+        msg_data = msg.get('data', {})
+        
+        sender_session = msg_data.get('sender_session', str(uuid.uuid4()))
+        data = msg_data
 
         # heartbeat/session tracking
         self._update_session(sender_session)
@@ -151,4 +153,6 @@ class Server:
                 time.sleep(1)
         except KeyboardInterrupt:
             print("\n[SERVER] Shutting down...")
+            # Clean up any pending messages from this server
+            self.tunnel.delete_sender_messages('client-channel', self.tunnel.client_id)
             self.tunnel.stop_listening()

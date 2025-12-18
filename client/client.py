@@ -15,9 +15,9 @@ class Client:
         self.sender_session = str(uuid.uuid4())
 
         self.tunnel = firebase_transport.FirebaseTransport(
-            os.environ.get("FIREBASE_PROJECT_ID"),
-            password=os.environ.get("FIREBASE_PASSWORD")
+            os.environ.get("FIREBASE_PROJECT_ID")
         )
+        self.tunnel.debug = debug
         self.tunnel.on_message(self._handle_response)
 
         # Response handling
@@ -51,11 +51,13 @@ class Client:
     # ----------------------
     def _handle_response(self, msg: dict):
         """Handle incoming response from server."""
-        # Only accept messages for our session
-        if msg.get("sender_session") != self.sender_session:
+        # Extract data from message structure
+        data = msg.get('data', {})
+        
+        # Only accept messages that are responses (have sender_session matching)
+        if isinstance(data, dict) and data.get("sender_session") != self.sender_session:
             return
 
-        data = msg['data']
         self.pending_response = data
         self.response_event.set()
 
@@ -108,4 +110,6 @@ class Client:
 
     def close(self):
         """Clean up and stop listening."""
+        # Clean up any pending messages from this client in server-channel
+        self.tunnel.delete_sender_messages('server-channel', self.tunnel.client_id)
         self.tunnel.stop_listening()
