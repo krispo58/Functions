@@ -5,8 +5,26 @@ import win32process
 import win32con
 import win32api
 import ctypes
-from ctypes import wintypes
-from ctypes import windll, CFUNCTYPE, c_int, c_void_p, POINTER
+from ctypes import wintypes, Structure
+from ctypes import windll, CFUNCTYPE, c_int, c_void_p, POINTER, c_uint, c_bool
+
+
+class FLASHWINFO(Structure):
+    """Structure for FlashWindowEx API."""
+    _fields_ = [("cbSize", c_uint),
+                ("hwnd", c_void_p),
+                ("dwFlags", c_uint),
+                ("uCount", c_uint),
+                ("dwTimeout", c_uint)]
+
+
+# Flash window flags
+FLASHW_STOP = 0
+FLASHW_CAPTION = 1
+FLASHW_TRAY = 2
+FLASHW_ALL = 3
+FLASHW_TIMER = 4
+FLASHW_TIMERNOFG = 12
 
 
 class WordWrapper:
@@ -82,40 +100,7 @@ class WordWrapper:
             self.use_active_doc()
             return True
         except:
-            return False
-
-    def flash_taskbar(self, count: int = 3):
-        """
-        Triggers a taskbar attention flash on the Word icon.
-        Works even if Word is minimized and COM doesn't expose Hwnd.
-        """
-
-        # Find Word's main window (class name is always 'OpusApp')
-        hwnd = win32gui.FindWindow("OpusApp", None)
-        if not hwnd:
-            return False
-
-        FLASHW_ALL = 3
-        FLASHW_TIMERNOFG = 12
-
-        class FLASHWINFO(ctypes.Structure):
-            _fields_ = [
-                ("cbSize", wintypes.UINT),
-                ("hwnd", wintypes.HWND),
-                ("dwFlags", wintypes.DWORD),
-                ("uCount", wintypes.UINT),
-                ("dwTimeout", wintypes.DWORD),
-            ]
-
-        info = FLASHWINFO(
-            cbSize=ctypes.sizeof(FLASHWINFO),
-            hwnd=hwnd,
-            dwFlags=FLASHW_ALL | FLASHW_TIMERNOFG,
-            uCount=count,
-            dwTimeout=0,
-        )
-
-        return ctypes.windll.user32.FlashWindowEx(ctypes.byref(info)) != 0
+            return False   
 
     def get_text(self, start: int = None, end: int = None) -> str:
         """Get text from the document or range."""
@@ -329,6 +314,28 @@ class WordWrapper:
     def save(self):
         if self.doc:
             self.doc.Save()
+
+    def flash_taskbar(self, count=3, timeout=500):
+        """
+        Flashes the Word icon in the taskbar.
+        
+        Args:
+            count: Number of times to flash (default: 3)
+            timeout: Duration in milliseconds between flashes (default: 500)
+        """
+        try:
+            hwnd = self.word.hwnd
+            fwinfo = FLASHWINFO()
+            fwinfo.cbSize = ctypes.sizeof(FLASHWINFO)
+            fwinfo.hwnd = hwnd
+            fwinfo.dwFlags = FLASHW_ALL
+            fwinfo.uCount = count
+            fwinfo.dwTimeout = timeout
+            
+            windll.user32.FlashWindowEx(ctypes.byref(fwinfo))
+            return True
+        except:
+            return False
 
     def close_doc(self):
         if self.doc:
