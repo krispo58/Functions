@@ -66,7 +66,13 @@ class FirebaseTransport:
 
     def _delete_message(self, doc_name: str) -> bool:
         try:
-            url = f"https://firestore.googleapis.com{doc_name.split('firestore.googleapis.com')[-1]}"
+            # doc_name format: "projects/PROJECT_ID/databases/(default)/documents/messages/DOC_ID"
+            # Need to construct: https://firestore.googleapis.com/v1/projects/PROJECT_ID/databases/(default)/documents/messages/DOC_ID
+            if doc_name.startswith('projects/'):
+                url = f"https://firestore.googleapis.com/v1/{doc_name}"
+            else:
+                # Fallback: extract path after domain
+                url = f"https://firestore.googleapis.com/v1/{doc_name.split('documents/')[-1]}" if 'documents/' in doc_name else doc_name
             response = requests.delete(url, headers=self._get_headers(), timeout=5)
             return response.status_code in (200, 204)
         except Exception as e:
