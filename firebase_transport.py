@@ -108,14 +108,16 @@ class FirebaseTransport:
             for key, value in message.items():
                 fields[key] = self._to_firestore_value(value)
             
-            # Build Firestore API request
-            url = f"{self.base_url}/{channel}/{doc_id}"
+            # Build Firestore API request - use query parameter for documentId
+            url = f"{self.base_url}/{channel}"
             payload = {'fields': fields}
+            params = {'documentId': doc_id}
             
             response = requests.post(
                 url,
                 headers=self._get_headers(),
                 json=payload,
+                params=params,
                 timeout=10
             )
             
