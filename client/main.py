@@ -14,7 +14,7 @@ os.environ["FIREBASE_PROJECT_ID"] = "my-awesome-project-3c43d"
 #domain = "ordbokene.no"
 
 word = wordwrapper.WordWrapper(visible=True)
-client = networkclient.Client(debug=True)
+client = networkclient.Client()
 word_is_open = True
 stop = False
 
