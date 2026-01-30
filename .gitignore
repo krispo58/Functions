@@ -4,4 +4,7 @@ __pycache__/
 *.pyc
 */__pycache__/
 server/api_key.py
+server/__pycache__/*
 testing.py
+server/script.lock
+client/script.lock
