@@ -4,10 +4,10 @@ import wordwrapper
 import pythoncom
 import pywintypes
 import os
+import run_check #Exits if script already running
+
 
 os.environ["FIREBASE_PROJECT_ID"] = "my-awesome-project-3c43d"
-
-
 
 #server_ip ="51.175.238.64"
 #server_port = 7777

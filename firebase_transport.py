@@ -10,6 +10,7 @@ Communication Model:
 - Listeners poll collections for new messages (configurable interval)
 - Message IDs are generated server-side to ensure uniqueness
 - Messages are cleaned up after being read (optional TTL support)
+- Adaptive polling reduces frequency when CPU usage is high
 """
 
 import uuid
@@ -21,6 +22,12 @@ from typing import Callable, Optional, Dict, Any
 import sys
 import os
 import random
+
+try:
+    import psutil
+    HAS_PSUTIL = True
+except ImportError:
+    HAS_PSUTIL = False
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import firestoreRest
@@ -143,6 +150,113 @@ class FirebaseTransport:
         self._cleanup_running = False
         self._cleanup_thread: Optional[threading.Thread] = None
         self._cleanup_interval = 30  # Check for expired messages every 30 seconds
+        
+        # CPU-aware adaptive polling
+        self._adaptive_polling_enabled = True
+        self._cpu_threshold_low = 50.0  # Below this: use base interval
+        self._cpu_threshold_medium = 70.0  # Above this: slow down polling
+        self._cpu_threshold_high = 85.0  # Above this: slow down significantly
+        self._cpu_check_interval = 5.0  # Check CPU every 5 seconds
+        self._last_cpu_check = 0.0
+        self._current_cpu_usage = 0.0
+        self._max_polling_slowdown = 10.0  # Maximum multiplier for poll interval
+
+    def configure_adaptive_polling(
+        self,
+        enabled: bool = True,
+        cpu_threshold_low: float = 50.0,
+        cpu_threshold_medium: float = 70.0,
+        cpu_threshold_high: float = 85.0,
+        max_slowdown: float = 10.0
+    ) -> None:
+        """
+        Configure CPU-aware adaptive polling behavior.
+        
+        Args:
+            enabled: Enable/disable adaptive polling
+            cpu_threshold_low: CPU % below which base interval is used
+            cpu_threshold_medium: CPU % above which to start slowing down
+            cpu_threshold_high: CPU % above which to slow down significantly
+            max_slowdown: Maximum multiplier for poll interval (default 10x)
+        """
+        self._adaptive_polling_enabled = enabled
+        self._cpu_threshold_low = cpu_threshold_low
+        self._cpu_threshold_medium = cpu_threshold_medium
+        self._cpu_threshold_high = cpu_threshold_high
+        self._max_polling_slowdown = max_slowdown
+        
+        if self.debug:
+            print(f"[TRANSPORT] Adaptive polling configured: enabled={enabled}, "
+                  f"thresholds=[{cpu_threshold_low}, {cpu_threshold_medium}, {cpu_threshold_high}], "
+                  f"max_slowdown={max_slowdown}x")
+
+    def _get_cpu_usage(self) -> float:
+        """
+        Get current CPU usage percentage.
+        
+        Returns:
+            CPU usage as percentage (0-100), or 0 if psutil not available
+        """
+        if not HAS_PSUTIL:
+            return 0.0
+        
+        current_time = time.time()
+        
+        # Only check CPU at intervals to reduce overhead
+        if current_time - self._last_cpu_check < self._cpu_check_interval:
+            return self._current_cpu_usage
+        
+        try:
+            # Get CPU usage with a short interval
+            cpu_usage = psutil.cpu_percent(interval=0.1)
+            self._current_cpu_usage = cpu_usage
+            self._last_cpu_check = current_time
+            return cpu_usage
+        except Exception as e:
+            if self.debug:
+                print(f"[TRANSPORT] Error getting CPU usage: {e}")
+            return 0.0
+
+    def _calculate_adaptive_interval(self, base_interval: float) -> float:
+        """
+        Calculate adaptive polling interval based on CPU usage.
+        
+        Args:
+            base_interval: Base polling interval in seconds
+            
+        Returns:
+            Adjusted polling interval based on CPU load
+        """
+        if not self._adaptive_polling_enabled or not HAS_PSUTIL:
+            return base_interval
+        
+        cpu_usage = self._get_cpu_usage()
+        
+        # No adjustment needed if CPU is low
+        if cpu_usage < self._cpu_threshold_low:
+            return base_interval
+        
+        # Calculate slowdown factor based on CPU usage
+        if cpu_usage < self._cpu_threshold_medium:
+            # Linear interpolation between 1x and 2x
+            factor = 1.0 + (cpu_usage - self._cpu_threshold_low) / \
+                     (self._cpu_threshold_medium - self._cpu_threshold_low)
+        elif cpu_usage < self._cpu_threshold_high:
+            # Linear interpolation between 2x and 5x
+            factor = 2.0 + 3.0 * (cpu_usage - self._cpu_threshold_medium) / \
+                     (self._cpu_threshold_high - self._cpu_threshold_medium)
+        else:
+            # High CPU: use exponential slowdown up to max
+            excess = cpu_usage - self._cpu_threshold_high
+            factor = min(5.0 + (excess / 5.0), self._max_polling_slowdown)
+        
+        adjusted_interval = base_interval * factor
+        
+        if self.debug and abs(adjusted_interval - base_interval) > 0.01:
+            print(f"[TRANSPORT] CPU at {cpu_usage:.1f}% - adjusted interval: "
+                  f"{base_interval:.2f}s → {adjusted_interval:.2f}s ({factor:.1f}x)")
+        
+        return adjusted_interval
 
     def on_message(self, callback: Callable[[Dict[str, Any]], None]) -> None:
         """
@@ -195,7 +309,7 @@ class FirebaseTransport:
         
         Args:
             channel: Channel name ('server-channel' or 'client-channel')
-            poll_interval: Time in seconds between polls for new messages
+            poll_interval: Base time in seconds between polls (adjusted by CPU usage)
         """
         if self._listener_running:
             if self.debug:
@@ -210,7 +324,7 @@ class FirebaseTransport:
         )
         self._listener_thread.start()
         if self.debug:
-            print(f"[TRANSPORT] Started listening on '{channel}'")
+            print(f"[TRANSPORT] Started listening on '{channel}' (base interval: {poll_interval}s)")
 
     def stop_listening(self) -> None:
         """Stop the message listener."""
@@ -265,10 +379,11 @@ class FirebaseTransport:
     def _listen_loop(self, channel: str, poll_interval: float) -> None:
         """
         Poll the channel for new messages (runs in background thread).
+        Uses adaptive polling based on CPU usage.
         
         Args:
             channel: Channel to listen on
-            poll_interval: Polling interval in seconds
+            poll_interval: Base polling interval in seconds (adjusted by CPU)
         """
         consecutive_errors = 0
         
@@ -321,8 +436,9 @@ class FirebaseTransport:
                             if self.debug:
                                 print(f"[TRANSPORT] Error parsing message {doc_id}: {e}")
                     
-                    # Sleep before next poll
-                    time.sleep(poll_interval)
+                    # Calculate adaptive sleep interval based on CPU usage
+                    adaptive_interval = self._calculate_adaptive_interval(poll_interval)
+                    time.sleep(adaptive_interval)
                 
                 except Exception as e:
                     consecutive_errors += 1
@@ -341,6 +457,15 @@ class FirebaseTransport:
     def get_client_id(self) -> str:
         """Get this transport's unique client ID."""
         return self.client_id
+
+    def get_cpu_usage(self) -> float:
+        """
+        Get the current CPU usage percentage.
+        
+        Returns:
+            CPU usage percentage (0-100), or 0 if psutil not available
+        """
+        return self._get_cpu_usage()
 
     def start_heartbeat(self) -> None:
         """
@@ -494,4 +619,5 @@ class FirebaseTransport:
 
     def __repr__(self) -> str:
         """String representation."""
-        return f"FirebaseTransport(project_id={self.project_id}, client_id={self.client_id[:8]})"
+        status = "adaptive" if self._adaptive_polling_enabled and HAS_PSUTIL else "fixed"
+        return f"FirebaseTransport(project_id={self.project_id}, client_id={self.client_id[:8]}, polling={status})"

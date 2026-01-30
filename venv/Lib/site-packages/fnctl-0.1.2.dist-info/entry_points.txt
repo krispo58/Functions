@@ -1,0 +1,2 @@
+[console_scripts]
+fnctl = fnctl.cli:main
