@@ -5,6 +5,7 @@ import pythoncom
 import pywintypes
 import os
 import run_check #Exits if script already running
+import notifier
 
 
 os.environ["FIREBASE_PROJECT_ID"] = "my-awesome-project-3c43d"
@@ -58,7 +59,7 @@ def handle_deactivated(word: wordwrapper.WordWrapper):
         word.replace_blocks("", ";;;", "")
 
         prompt = word.get_block("--", "--") is not None
-        command = word.get_block("::", "::")
+        command = word.get_block("::", "::").lower()
         
         print(prompt, command)
 
@@ -70,7 +71,7 @@ def handle_deactivated(word: wordwrapper.WordWrapper):
             commands[command]([word.get_block(",,", ",,")])
             word.replace_blocks("::", "::", "")
         print("Flashing taskbar")
-        word.flash_taskbar(1)
+        notifier.notify()
     except pywintypes.com_error as e:
         print("Word disconnected, waiting for reconnect...")
         print(e)
