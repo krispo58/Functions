@@ -42,36 +42,20 @@ commands = {
     "test": test
 }
 
-def _keep_mouse_active(stop_event: threading.Event):
-    """Move mouse slightly to keep system active during pending operations."""
-    try:
-        offset = 0
-        while not stop_event.is_set():
-            # Move mouse slightly (3 pixels) in alternating directions
-            current_x, current_y = pyautogui.position()
-            new_x = current_x + (3 if offset % 2 == 0 else -3)
-            pyautogui.moveTo(new_x, current_y, duration=0.1)
-            offset += 1
-            
-            # Check every 2 seconds if operation is complete
-            if stop_event.wait(timeout=2):
-                break
-    except Exception as e:
-        print(f"Mouse movement error: {e}")
+def start_mouse_movement():
+    def move_mouse():
+        while True:
+            pyautogui.move(0, 1)
+            time.sleep(0.1)
+            pyautogui.move(0, -1)
+            time.sleep(0.1)
+    thread = threading.Thread(target=move_mouse, daemon=True)
+    thread.start()
+    return thread
 
-def _with_mouse_activity(func, *args, **kwargs):
-    """Wrapper to execute a function while keeping mouse active."""
-    stop_event = threading.Event()
-    mouse_thread = threading.Thread(target=_keep_mouse_active, args=(stop_event,), daemon=True)
-    mouse_thread.start()
-    
-    try:
-        result = func(*args, **kwargs)
-    finally:
-        stop_event.set()
-        mouse_thread.join(timeout=1)
-    
-    return result
+def stop_mouse_movement(thread: threading.Thread):
+    if thread.is_alive():
+        thread.join(timeout=0)
 
 def find_prompt_replace(word: wordwrapper.WordWrapper):
     word.make_hidden_visible()
@@ -80,7 +64,7 @@ def find_prompt_replace(word: wordwrapper.WordWrapper):
 
     if prompt is None:
         return
-    r = _with_mouse_activity(client.send_prompt, prompt)
+    r = client.send_prompt(prompt)
     word.replace_blocks(f"--", "--", "") #Delete prompt from document
     word.replace_block(",,", ",,", r)
 
@@ -101,8 +85,10 @@ def handle_deactivated(word: wordwrapper.WordWrapper):
                 find_prompt_replace(word)
         if command is not None:
             command = command if isinstance(command, str) else command[0]
+            mt = start_mouse_movement()
             commands[command]([word.get_block(",,", ",,")])
             word.replace_blocks("::", "::", "")
+            stop_mouse_movement(mt)
         print("Flashing taskbar")
         notifier.notify()
     except pywintypes.com_error as e:

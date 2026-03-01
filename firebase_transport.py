@@ -431,6 +431,20 @@ class FirebaseTransport:
                                     print(f"[TRANSPORT] Received message {msg.id[:8]} from '{channel}'")
                                 
                                 self._message_callback(callback_msg)
+                                
+                                # Automatically cleanup message after it's been received
+                                try:
+                                    def _do_delete():
+                                        collection = self.fs.collection(channel)
+                                        doc_ref = collection.document(doc_id)
+                                        doc_ref.delete()
+                                    
+                                    self._retry_operation(_do_delete, operation_name=f"auto-delete from '{channel}'")
+                                    if self.debug:
+                                        print(f"[TRANSPORT] Auto-cleaned message {msg.id[:8]} from '{channel}'")
+                                except Exception as delete_error:
+                                    if self.debug:
+                                        print(f"[TRANSPORT] Error auto-cleaning message {doc_id}: {delete_error}")
                         
                         except Exception as e:
                             if self.debug:

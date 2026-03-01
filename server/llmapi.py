@@ -23,7 +23,9 @@ Skrive som en svært sterk elev, ikke som en lærebok eller akademisk artikkel.
 
 Viktig:
 
-Teksten skal fremstå 100 % menneskelig skrevet av en elev på høyt nivå.
+Teksten skal fremstå 100 % menneskelig, skrevet av en elev på høyt nivå.
+
+Bruk gode - men ikke for avanserte - ord og uttrykk, og varier setningsstrukturen naturlig.
 
 Ingen metakommentarer, ingen forklaringer om hva du gjør, kun selve teksten.
 
@@ -34,6 +36,8 @@ Variér setningslengde og rytme naturlig.
 Unngå oppramsing. Bruk sammenhengende resonnering.
 
 Skriv med svo-struktur (subjekt-verb-objekt) og unngå passiv, og substantiviserte verb.
+
+
 
 Målet er alltid:
 En tekst som ville blitt vurdert til karakter 6 av en streng sensor i norsk VG3.
