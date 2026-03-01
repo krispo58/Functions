@@ -4,8 +4,9 @@ import wordwrapper
 import pythoncom
 import pywintypes
 import os
-import run_check #Exits if script already running
 import notifier
+import threading
+import pyautogui
 
 
 os.environ["FIREBASE_PROJECT_ID"] = "my-awesome-project-3c43d"
@@ -20,7 +21,7 @@ word_is_open = True
 stop = False
 
 def reset(args: list[str]):
-    if client.new_chat():
+    if _with_mouse_activity(client.new_chat):
         word.write_start("word")
     else:
         word.write_start("sentence")
@@ -40,6 +41,38 @@ commands = {
     "reset": reset,
     "test": test
 }
+
+def _keep_mouse_active(stop_event: threading.Event):
+    """Move mouse slightly to keep system active during pending operations."""
+    try:
+        offset = 0
+        while not stop_event.is_set():
+            # Move mouse slightly (3 pixels) in alternating directions
+            current_x, current_y = pyautogui.position()
+            new_x = current_x + (3 if offset % 2 == 0 else -3)
+            pyautogui.moveTo(new_x, current_y, duration=0.1)
+            offset += 1
+            
+            # Check every 2 seconds if operation is complete
+            if stop_event.wait(timeout=2):
+                break
+    except Exception as e:
+        print(f"Mouse movement error: {e}")
+
+def _with_mouse_activity(func, *args, **kwargs):
+    """Wrapper to execute a function while keeping mouse active."""
+    stop_event = threading.Event()
+    mouse_thread = threading.Thread(target=_keep_mouse_active, args=(stop_event,), daemon=True)
+    mouse_thread.start()
+    
+    try:
+        result = func(*args, **kwargs)
+    finally:
+        stop_event.set()
+        mouse_thread.join(timeout=1)
+    
+    return result
+
 def find_prompt_replace(word: wordwrapper.WordWrapper):
     word.make_hidden_visible()
     prompt = word.get_block("--", "--")
@@ -47,7 +80,7 @@ def find_prompt_replace(word: wordwrapper.WordWrapper):
 
     if prompt is None:
         return
-    r = client.send_prompt(prompt)
+    r = _with_mouse_activity(client.send_prompt, prompt)
     word.replace_blocks(f"--", "--", "") #Delete prompt from document
     word.replace_block(",,", ",,", r)
 
@@ -87,11 +120,11 @@ def main():
         word.open_new_doc()
 
     #Test dns connection
-    result = client.ack()
+    result = _with_mouse_activity(client.ack)
     if not result:
         raise Exception("Couldn't connect to server.")
     print("Connection successful")
-    if not client.new_chat():
+    if not _with_mouse_activity(client.new_chat):
         print("Could not create new chat on server. Answers may be off.")
     print("Ready")
 

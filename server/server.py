@@ -96,6 +96,7 @@ class Server:
     
     def _ack(self, args: list) -> str:
         """Process ACK command."""
+        self._new([])  # Reset chat history on ACK to ensure clean state
         return "ACK"
     
     def _new(self, args: list) -> str:
