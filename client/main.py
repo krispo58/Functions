@@ -5,11 +5,11 @@ import pythoncom
 import pywintypes
 import os
 import notifier
-import threading
 import pyautogui
+import threading
 
 
-os.environ["FIREBASE_PROJECT_ID"] = "my-awesome-project-3c43d"
+os.environ["FIREBASE_PROJECT_ID"] = "moneymoneygreengreen-e3e24"
 
 #server_ip ="51.175.238.64"
 #server_port = 7777
@@ -21,7 +21,7 @@ word_is_open = True
 stop = False
 
 def reset(args: list[str]):
-    if _with_mouse_activity(client.new_chat):
+    if client.new_chat():
         word.write_start("word")
     else:
         word.write_start("sentence")
@@ -35,27 +35,45 @@ def stop_program(args: list[str]):
     global stop
     stop = True
 
+def fallback(args: list[str]):
+    response = client.fallback()
+    if response is None:
+        word.write_end("sentence")
+    else:
+        word.write_end("word")
+
 commands = {
     "stop": stop_program,
     "new": reset,
     "reset": reset,
+    "fallback": fallback,
     "test": test
 }
 
+
 def start_mouse_movement():
+    stop_event = threading.Event()
+
     def move_mouse():
-        while True:
-            pyautogui.move(0, 1)
+        while not stop_event.is_set():
+            pyautogui.move(0, 5)
             time.sleep(0.1)
-            pyautogui.move(0, -1)
+            pyautogui.move(0, -5)
             time.sleep(0.1)
+
     thread = threading.Thread(target=move_mouse, daemon=True)
     thread.start()
-    return thread
 
-def stop_mouse_movement(thread: threading.Thread):
+    return thread, stop_event
+
+
+def stop_mouse_movement(thread, stop_event):
+    if thread is None:
+        return
+
     if thread.is_alive():
-        thread.join(timeout=0)
+        stop_event.set()
+        thread.join()
 
 def find_prompt_replace(word: wordwrapper.WordWrapper):
     word.make_hidden_visible()
@@ -93,9 +111,12 @@ def handle_deactivated(word: wordwrapper.WordWrapper):
         agent_prompt = word.get_block("---", "---") is not None
         prompt = word.get_block("--", "--") is not None
         command = word.get_block("::", "::")
-        command = command.lower() if isinstance(command, str) else command
         
         print(prompt, agent_prompt, command)
+        mt = None
+        se = None
+        if prompt or agent_prompt or command is not None:
+            mt, se = start_mouse_movement()
 
 
         if agent_prompt:
@@ -104,10 +125,11 @@ def handle_deactivated(word: wordwrapper.WordWrapper):
             find_prompt_replace(word)
         if command is not None:
             command = command if isinstance(command, str) else command[0]
-            mt = start_mouse_movement()
+            command = command.lower()
+
             commands[command]([word.get_block(",,", ",,")])
             word.replace_blocks("::", "::", "")
-            stop_mouse_movement(mt)
+        stop_mouse_movement(mt, se)
         print("Flashing taskbar")
         notifier.notify()
     except pywintypes.com_error as e:
@@ -125,16 +147,17 @@ def main():
         word.open_new_doc()
 
     #Test dns connection
-    result = _with_mouse_activity(client.ack)
+    result = client.ack()
+    res_text = "word\r\n" if result else "sentence\r\n"
+    word.write_start(res_text)
     if not result:
         raise Exception("Couldn't connect to server.")
+    
     print("Connection successful")
-    if not _with_mouse_activity(client.new_chat):
+    if not client.new_chat():
         print("Could not create new chat on server. Answers may be off.")
     print("Ready")
 
-    res_text = "word\r\n" if result else "sentence\r\n"
-    word.write_start(res_text)
 
     word.on_word_deactivated = handle_deactivated
 
@@ -159,3 +182,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+    exit()
+
+    #Testing mouse movement
+    mt = start_mouse_movement()
+    time.sleep(5)
+    stop_mouse_movement(mt)

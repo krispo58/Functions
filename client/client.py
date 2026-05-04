@@ -87,7 +87,7 @@ class Client:
             return None
 
     def send_agent_prompt(self, prompt: str) -> str:
-        """Send a prompt through the writer/sensor loop and get the final response."""
+        """Send a prompt through the writer/sensor loop and get response."""
         response = self._send_and_wait("AGENT_PROMPT", [prompt], timeout=600)
         if response is None:
             return None
@@ -99,6 +99,14 @@ class Client:
             print(f"Error: {error}")
             return None
     
+    def fallback(self):
+        """Manually trigger fallback response from server."""
+        response = self._send_and_wait("FALLBACK", timeout=10)
+        if response is None:
+            return None
+        
+        return response.get("status") == "success"
+
     def close(self):
         """Clean up and stop listening."""
         self.tunnel.stop_listening()
