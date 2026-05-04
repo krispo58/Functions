@@ -26,6 +26,12 @@ def reset(args: list[str]):
     else:
         word.write_start("sentence")
 
+def reset_judge(args: list[str]):
+    if client.new_judge():
+        word.write_start("judge")
+    else:
+        word.write_start("sentence")
+
 
 def test(args: list[str]):
     word.write_end("t")
@@ -46,6 +52,8 @@ commands = {
     "stop": stop_program,
     "new": reset,
     "reset": reset,
+    "newjudge": reset_judge,
+    "resetjudge": reset_judge,
     "fallback": fallback,
     "test": test
 }

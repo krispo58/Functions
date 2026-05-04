@@ -70,7 +70,7 @@ Ikke gi ros eller generelle kommentarer. Bare konkrete instruksjoner eller godkj
 
 
 class LLM:
-    def __init__(self, gemini_model: str = "gemini-3-flash-preview", gemini_fallback_models: list = None, fallback_model: str = "openai/gpt-oss-120b", temperature: float = 0.4, top_p: float = 0.9, gemini_timeout_ms: int = 180000):
+    def __init__(self, gemini_model: str = "gemini-3.1-pro-preview", gemini_fallback_models: list = None, fallback_model: str = "openai/gpt-oss-120b", temperature: float = 0.4, top_p: float = 0.9, gemini_timeout_ms: int = 180000):
         self.groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         self.gemini_client = genai.Client(
             api_key=os.environ.get("GEMINI_API_KEY"),
@@ -101,6 +101,9 @@ class LLM:
         self.writer_messages = [{"role": "system", "content": WRITER_PROMPT}]
         self.judge_messages = [{"role": "system", "content": SENSOR_JUDGE_PROMPT}]
         self.messages = self.writer_messages
+
+    def reset_judge_history(self):
+        self.judge_messages = [{"role": "system", "content": SENSOR_JUDGE_PROMPT}]
 
     def _next_gemini_model(self) -> str:
         try:
@@ -172,6 +175,10 @@ class LLM:
             gemini_should_retry_fast = (
                 ("rate" in error_str and "limit" in error_str)
                 or "deadline" in error_str
+                or "503" in error_str
+                or "high demand" in error_str
+                or "overloaded" in error_str
+                or "unavailable" in error_str
                 or "504" in error_str
                 or "timeout" in error_str
             )
@@ -277,6 +284,10 @@ class LLM:
             gemini_should_retry_fast = (
                 ("rate" in error_str and "limit" in error_str)
                 or "deadline" in error_str
+                or "503" in error_str
+                or "high demand" in error_str
+                or "overloaded" in error_str
+                or "unavailable" in error_str
                 or "504" in error_str
                 or "timeout" in error_str
             )

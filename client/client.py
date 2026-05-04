@@ -72,6 +72,13 @@ class Client:
         if response is None:
             return False
         return response.get("status") == "success" and response.get("data") == "success"
+
+    def new_judge(self) -> bool:
+        """Reset only the judge chat session."""
+        response = self._send_and_wait("NEW_JUDGE", timeout=10)
+        if response is None:
+            return False
+        return response.get("status") == "success" and response.get("data") == "success"
     
     def send_prompt(self, prompt: str) -> str:
         """Send a prompt to the LLM and get response."""

@@ -30,6 +30,7 @@ class Server:
             "JUDGE": self._judge,
             "ACK": self._ack,
             "FALLBACK": self._fallback,
+            "NEW_JUDGE": self._new_judge,
             "NEW": self._new
         }
         if debug:
@@ -116,6 +117,11 @@ class Server:
     def _new(self, args: list) -> str:
         """Process NEW command."""
         self.llm.reset_chat_history()
+        return "success"
+
+    def _new_judge(self, args: list) -> str:
+        """Process NEW_JUDGE command."""
+        self.llm.reset_judge_history()
         return "success"
 
     def _fallback(self, args: list) -> str:
