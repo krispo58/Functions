@@ -75,10 +75,23 @@ class Client:
     
     def send_prompt(self, prompt: str) -> str:
         """Send a prompt to the LLM and get response."""
-        response = self._send_and_wait("PROMPT", [prompt], timeout=30)
+        response = self._send_and_wait("PROMPT", [prompt], timeout=120)
         if response is None:
             return None
         
+        if response.get("status") == "success":
+            return response.get("data")
+        else:
+            error = response.get("error", "Unknown error")
+            print(f"Error: {error}")
+            return None
+
+    def send_agent_prompt(self, prompt: str) -> str:
+        """Send a prompt through the writer/sensor loop and get the final response."""
+        response = self._send_and_wait("AGENT_PROMPT", [prompt], timeout=600)
+        if response is None:
+            return None
+
         if response.get("status") == "success":
             return response.get("data")
         else:

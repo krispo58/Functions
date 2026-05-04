@@ -27,7 +27,9 @@ class Server:
         self.llm = llmapi.LLM()
         self.commands = {
             "PROMPT": self._prompt,
+            "AGENT_PROMPT": self._agent_prompt,
             "ACK": self._ack,
+            "FALLBACK": self._fallback,
             "NEW": self._new
         }
         if debug:
@@ -93,6 +95,16 @@ class Server:
         if self.debug:
             print("LLM response:", response[:100] + "..." if len(response) > 100 else response)
         return response
+
+    def _agent_prompt(self, args: list) -> str:
+        """Process AGENT_PROMPT command."""
+        if self.debug:
+            print("Processing AGENT_PROMPT command... arguments:", args)
+        prompt_content = args[0]
+        response = self.llm.agent_prompt(prompt_content)
+        if self.debug:
+            print("Agent response:", response[:100] + "..." if len(response) > 100 else response)
+        return response
     
     def _ack(self, args: list) -> str:
         """Process ACK command."""
@@ -103,6 +115,11 @@ class Server:
         """Process NEW command."""
         self.llm.reset_chat_history()
         return "success"
+
+    def _fallback(self, args: list) -> str:
+        """Manual fallback override"""
+        response = self.llm.fallback()
+        return "success" if response else "failure"
     
     def start(self):
         """Start the server and listen for incoming requests."""

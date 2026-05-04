@@ -60,12 +60,27 @@ def stop_mouse_movement(thread: threading.Thread):
 def find_prompt_replace(word: wordwrapper.WordWrapper):
     word.make_hidden_visible()
     prompt = word.get_block("--", "--")
-    prompt = prompt if isinstance(prompt, str) else prompt[0]
 
     if prompt is None:
         return
+    prompt = prompt if isinstance(prompt, str) else prompt[0]
     r = client.send_prompt(prompt)
+    if r is None:
+        return
     word.replace_blocks(f"--", "--", "") #Delete prompt from document
+    word.replace_block(",,", ",,", r)
+
+def find_agent_prompt_replace(word: wordwrapper.WordWrapper):
+    word.make_hidden_visible()
+    prompt = word.get_block("---", "---")
+
+    if prompt is None:
+        return
+    prompt = prompt if isinstance(prompt, str) else prompt[0]
+    r = client.send_agent_prompt(prompt)
+    if r is None:
+        return
+    word.replace_blocks("---", "---", "") #Delete prompt from document
     word.replace_block(",,", ",,", r)
 
 def handle_deactivated(word: wordwrapper.WordWrapper):
@@ -75,14 +90,18 @@ def handle_deactivated(word: wordwrapper.WordWrapper):
         word.make_hidden_visible()
         word.replace_blocks("", ";;;", "")
 
+        agent_prompt = word.get_block("---", "---") is not None
         prompt = word.get_block("--", "--") is not None
-        command = word.get_block("::", "::").lower()
+        command = word.get_block("::", "::")
+        command = command.lower() if isinstance(command, str) else command
         
-        print(prompt, command)
+        print(prompt, agent_prompt, command)
 
 
-        if prompt:
-                find_prompt_replace(word)
+        if agent_prompt:
+            find_agent_prompt_replace(word)
+        elif prompt:
+            find_prompt_replace(word)
         if command is not None:
             command = command if isinstance(command, str) else command[0]
             mt = start_mouse_movement()
