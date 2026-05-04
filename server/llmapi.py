@@ -1,4 +1,6 @@
 import os
+import re
+import time
 from groq import Groq
 from google import genai
 from google.genai import types
@@ -26,14 +28,12 @@ Unngå:
 
 Skriv med SVO-struktur, variert setningsrytme og sammenhengende resonnerende avsnitt. Ingen oppramsing.
 
-Kun disse tegnsettingene: komma, punktum, bindestrek, apostrof, kolon, parantes.
-
 Når du mottar tilbakemelding fra sensor, skal du:
 - Lese hver enkelt konkrete instruksjon nøye
 - Kun endre det som sensor peker på – ikke skrive om hele teksten
 - Ikke legge til metakommentarer om hva du har endret
 
-Ingen metakommentarer. Bare teksten.
+Ingen metakommentarer. Bare teksten. Om du får nye instruksjoner, følg de.
 """
 
 SENSOR_JUDGE_PROMPT = """Du er en streng ekstern sensor i norsk VG3 med lang sensurerings­erfaring. Du kjenner læreplanen (LK20) og vet nøyaktig hva som skiller karakter 6 fra karakter 5.
@@ -70,12 +70,20 @@ Ikke gi ros eller generelle kommentarer. Bare konkrete instruksjoner eller godkj
 
 
 class LLM:
-    def __init__(self, gemini_model: str = "gemini-3.1-pro-preview", gemini_fallback_model: str = "gemini-3-flash-preview", fallback_model: str = "openai/gpt-oss-120b", temperature: float = 0.4, top_p: float = 0.9):
+    def __init__(self, gemini_model: str = "gemini-3-flash-preview", gemini_fallback_models: list = None, fallback_model: str = "openai/gpt-oss-120b", temperature: float = 0.4, top_p: float = 0.9, gemini_timeout_ms: int = 180000):
         self.groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-        self.gemini_client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+        self.gemini_client = genai.Client(
+            api_key=os.environ.get("GEMINI_API_KEY"),
+            http_options=types.HttpOptions(timeout=gemini_timeout_ms)
+        )
 
+        self.gemini_models = [gemini_model] + (gemini_fallback_models or [
+            "gemini-2.5-flash",
+            "gemini-2.5-pro",
+            "gemini-2.0-flash",
+            "gemini-3-flash-preview"
+        ])
         self.gemini_model = gemini_model
-        self.gemini_fallback_model = gemini_fallback_model
         self.current_gemini_model = gemini_model
         self.fallback_model = fallback_model
         self.use_fallback = False 
@@ -83,19 +91,35 @@ class LLM:
         self.temperature = temperature
         self.top_p = top_p
         
-        # Internal history (Master list in Groq/OpenAI format)
-        self.messages = []
+        # Internal histories (Groq/OpenAI format)
+        self.writer_messages = []
+        self.judge_messages = []
+        self.messages = self.writer_messages
         self.reset_chat_history()
 
     def reset_chat_history(self):
-        # Starts history with the system prompt
-        self.messages = [{"role": "system", "content": WRITER_PROMPT}]
+        self.writer_messages = [{"role": "system", "content": WRITER_PROMPT}]
+        self.judge_messages = [{"role": "system", "content": SENSOR_JUDGE_PROMPT}]
+        self.messages = self.writer_messages
 
-    def _get_gemini_history(self):
+    def _next_gemini_model(self) -> str:
+        try:
+            current_index = self.gemini_models.index(self.current_gemini_model)
+        except ValueError:
+            current_index = -1
+
+        next_index = current_index + 1
+        if next_index >= len(self.gemini_models):
+            return None
+
+        return self.gemini_models[next_index]
+
+    def _get_gemini_history(self, messages: list = None):
         """Converts master history to Gemini's expected format using SDK types."""
         gemini_history = []
+        messages = messages or self.writer_messages
         
-        for msg in self.messages:
+        for msg in messages:
             # System instructions are passed in GenerateContentConfig, not here
             if msg["role"] == "system":
                 continue
@@ -113,13 +137,14 @@ class LLM:
             
         return gemini_history
 
-    def _prompt_gemini(self, content: str):
+    def _prompt_gemini(self, content: str, messages: list = None, system_instruction: str = WRITER_PROMPT):
+        messages = messages or self.writer_messages
         # 1. Update master history with the new user message
-        self.messages.append({"role": "user", "content": content})
+        messages.append({"role": "user", "content": content})
         
         try:
             # 2. Get history formatted for Gemini (excluding current message)
-            history = self._get_gemini_history()[:-1] 
+            history = self._get_gemini_history(messages)[:-1] 
 
             new_message = types.Content(
             role="user",
@@ -131,47 +156,54 @@ class LLM:
                 model=self.current_gemini_model,
                 contents=history + [new_message],
                 config=types.GenerateContentConfig(
-                    system_instruction=WRITER_PROMPT,
+                    system_instruction=system_instruction,
                     temperature=self.temperature,
                     top_p=self.top_p,
                 )
             )
             
             answer = response.text
-            self.messages.append({"role": "assistant", "content": answer})
+            messages.append({"role": "assistant", "content": answer})
             return answer
 
         except Exception as e:
             error_str = str(e).lower()
             
-            # Check if this is a rate limit error and we're still on the primary gemini model
-            if "rate" in error_str and "limit" in error_str and self.current_gemini_model == self.gemini_model:
-                print(f"Gemini Rate Limit on {self.current_gemini_model}: {e}. Switching to {self.gemini_fallback_model}.")
+            gemini_should_retry_fast = (
+                ("rate" in error_str and "limit" in error_str)
+                or "deadline" in error_str
+                or "504" in error_str
+                or "timeout" in error_str
+            )
+            next_gemini_model = self._next_gemini_model()
+            if gemini_should_retry_fast and next_gemini_model is not None:
+                print(f"Gemini Error on {self.current_gemini_model}: {e}. Switching to {next_gemini_model}.", flush=True)
                 # Remove the failed message and retry with fallback gemini model
-                self.messages.pop()
-                self.current_gemini_model = self.gemini_fallback_model
-                return self._prompt_gemini(content)
+                messages.pop()
+                self.current_gemini_model = next_gemini_model
+                return self._prompt_gemini(content, messages, system_instruction)
             
             # For any other error, or if we're already on the fallback gemini model, fall back to groq
-            print(f"Gemini Error: {e}. Falling back to Groq.")
+            print(f"Gemini Error: {e}. Falling back to Groq.", flush=True)
             self.use_fallback = True
             # Remove the message from history and retry with Groq
-            self.messages.pop() 
-            return self._prompt_groq(content)
+            messages.pop() 
+            return self._prompt_groq(content, messages, system_instruction)
 
-    def _prompt_groq(self, content: str):
-        self.messages.append({"role": "user", "content": content})
+    def _prompt_groq(self, content: str, messages: list = None, system_instruction: str = WRITER_PROMPT):
+        messages = messages or self.writer_messages
+        messages.append({"role": "user", "content": content})
 
         completion = self.groq_client.chat.completions.create(
             model=self.fallback_model,
-            messages=self.messages,
+            messages=[{"role": "system", "content": system_instruction}] + [msg for msg in messages if msg["role"] != "system"],
             temperature=self.temperature,
             top_p=self.top_p,
             stream=False # Simplified for history management
         )
 
         answer = completion.choices[0].message.content
-        self.messages.append({"role": "assistant", "content": answer})
+        messages.append({"role": "assistant", "content": answer})
         return answer
 
     def _complete_gemini_once(self, messages: list, system_instruction: str) -> str:
@@ -186,6 +218,7 @@ class LLM:
                 )
             )
 
+        print(f"[LLM] Calling Gemini model {self.current_gemini_model}.", flush=True)
         response = self.gemini_client.models.generate_content(
             model=self.current_gemini_model,
             contents=gemini_messages,
@@ -196,18 +229,41 @@ class LLM:
             )
         )
 
+        print(f"[LLM] Gemini model {self.current_gemini_model} returned.", flush=True)
         return response.text or ""
 
-    def _complete_groq_once(self, messages: list, system_instruction: str) -> str:
-        completion = self.groq_client.chat.completions.create(
-            model=self.fallback_model,
-            messages=[{"role": "system", "content": system_instruction}] + messages,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            stream=False
-        )
+    def _groq_retry_delay(self, error: Exception) -> float:
+        match = re.search(r"try again in ([0-9.]+)s", str(error), re.IGNORECASE)
+        if match:
+            return float(match.group(1)) + 0.5
+        return 5.0
 
-        return completion.choices[0].message.content or ""
+    def _complete_groq_once(self, messages: list, system_instruction: str, max_retries: int = 3) -> str:
+        for attempt in range(1, max_retries + 2):
+            try:
+                print(f"[LLM] Calling Groq fallback model {self.fallback_model}. Attempt {attempt}.", flush=True)
+                completion = self.groq_client.chat.completions.create(
+                    model=self.fallback_model,
+                    messages=[{"role": "system", "content": system_instruction}] + messages,
+                    temperature=self.temperature,
+                    top_p=self.top_p,
+                    stream=False
+                )
+
+                print(f"[LLM] Groq fallback model {self.fallback_model} returned.", flush=True)
+                return completion.choices[0].message.content or ""
+            except Exception as e:
+                error_str = str(e).lower()
+                if "rate_limit" not in error_str and "rate limit" not in error_str:
+                    raise
+                if attempt > max_retries:
+                    raise
+
+                delay = self._groq_retry_delay(e)
+                print(f"[LLM] Groq rate limit hit. Waiting {delay:.2f}s before retry.", flush=True)
+                time.sleep(delay)
+
+        return ""
 
     def _complete_once(self, messages: list, system_instruction: str) -> str:
         if self.use_fallback:
@@ -218,12 +274,19 @@ class LLM:
         except Exception as e:
             error_str = str(e).lower()
 
-            if "rate" in error_str and "limit" in error_str and self.current_gemini_model == self.gemini_model:
-                print(f"Gemini Rate Limit on {self.current_gemini_model}: {e}. Switching to {self.gemini_fallback_model}.")
-                self.current_gemini_model = self.gemini_fallback_model
-                return self._complete_gemini_once(messages, system_instruction)
+            gemini_should_retry_fast = (
+                ("rate" in error_str and "limit" in error_str)
+                or "deadline" in error_str
+                or "504" in error_str
+                or "timeout" in error_str
+            )
+            next_gemini_model = self._next_gemini_model()
+            if gemini_should_retry_fast and next_gemini_model is not None:
+                print(f"Gemini Error on {self.current_gemini_model}: {e}. Switching to {next_gemini_model}.", flush=True)
+                self.current_gemini_model = next_gemini_model
+                return self._complete_once(messages, system_instruction)
 
-            print(f"Gemini Error: {e}. Falling back to Groq.")
+            print(f"Gemini Error: {e}. Falling back to Groq.", flush=True)
             self.use_fallback = True
             return self._complete_groq_once(messages, system_instruction)
 
@@ -279,68 +342,19 @@ class LLM:
             lines.append(f"{label}: {msg['content']}")
         return "\n\n".join(lines)
 
-    def agent_prompt(self, content: str, max_rounds: int = 6) -> str:
-        if self._is_context_only_prompt(content):
-            answer = "Ferdig lest."
-            self.messages.extend([
-                {"role": "user", "content": content},
-                {"role": "assistant", "content": answer}
-            ])
-            return answer
-
-        previous_context = self._context_messages()
-        writer_messages = previous_context + [{"role": "user", "content": content}]
-        answer = self._complete_once(writer_messages, WRITER_PROMPT)
-
-        for _ in range(max_rounds):
-            judge_messages = [{
-                "role": "user",
-                "content": (
-                    "RELEVANT TIDLIGERE KONTEKST:\n"
-                    f"{self._format_context(previous_context)}\n\n"
-                    "OPPGAVE:\n"
-                    f"{content}\n\n"
-                    "TEKST SOM SKAL VURDERES:\n"
-                    f"{answer}"
-                )
-            }]
-            verdict = self._complete_once(judge_messages, SENSOR_JUDGE_PROMPT)
-
-            if self._judge_approved(verdict):
-                self.messages.extend([
-                    {"role": "user", "content": content},
-                    {"role": "assistant", "content": answer}
-                ])
-                return answer
-
-            writer_messages.extend([
-                {"role": "assistant", "content": answer},
-                {
-                    "role": "user",
-                    "content": (
-                        "Sensor godkjente ikke teksten som 6-nivå. "
-                        "Revider teksten ved å følge hver konkrete instruksjon fra sensor. "
-                        "Returner bare den ferdige reviderte teksten, uten metakommentarer.\n\n"
-                        f"Sensors vurdering:\n{verdict}"
-                    )
-                }
-            ])
-            answer = self._complete_once(writer_messages, WRITER_PROMPT)
-
-        self.messages.extend([
-            {"role": "user", "content": content},
-            {"role": "assistant", "content": answer}
-        ])
-        return answer
-
     def fallback(self):
         self.use_fallback = not self.use_fallback
         # Reset to primary gemini model when switching back
         if not self.use_fallback:
-            self.current_gemini_model = self.gemini_model
+            self.current_gemini_model = self.gemini_models[0]
         return True
 
     def prompt(self, content: str):
         if not self.use_fallback:
-            return self._prompt_gemini(content)
-        return self._prompt_groq(content)
+            return self._prompt_gemini(content, self.writer_messages, WRITER_PROMPT)
+        return self._prompt_groq(content, self.writer_messages, WRITER_PROMPT)
+
+    def judge(self, content: str):
+        if not self.use_fallback:
+            return self._prompt_gemini(content, self.judge_messages, SENSOR_JUDGE_PROMPT)
+        return self._prompt_groq(content, self.judge_messages, SENSOR_JUDGE_PROMPT)

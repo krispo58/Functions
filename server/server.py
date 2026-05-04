@@ -27,7 +27,7 @@ class Server:
         self.llm = llmapi.LLM()
         self.commands = {
             "PROMPT": self._prompt,
-            "AGENT_PROMPT": self._agent_prompt,
+            "JUDGE": self._judge,
             "ACK": self._ack,
             "FALLBACK": self._fallback,
             "NEW": self._new
@@ -96,14 +96,16 @@ class Server:
             print("LLM response:", response[:100] + "..." if len(response) > 100 else response)
         return response
 
-    def _agent_prompt(self, args: list) -> str:
-        """Process AGENT_PROMPT command."""
+    def _judge(self, args: list) -> str:
+        """Process JUDGE command."""
+        print("[SERVER] Received JUDGE command.", flush=True)
         if self.debug:
-            print("Processing AGENT_PROMPT command... arguments:", args)
-        prompt_content = args[0]
-        response = self.llm.agent_prompt(prompt_content)
+            print("Processing JUDGE command... arguments:", args)
+        judge_content = args[0]
+        response = self.llm.judge(judge_content)
+        print("[SERVER] Finished JUDGE command.", flush=True)
         if self.debug:
-            print("Agent response:", response[:100] + "..." if len(response) > 100 else response)
+            print("Judge response:", response[:100] + "..." if len(response) > 100 else response)
         return response
     
     def _ack(self, args: list) -> str:

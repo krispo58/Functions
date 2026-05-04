@@ -88,14 +88,14 @@ def find_prompt_replace(word: wordwrapper.WordWrapper):
     word.replace_blocks(f"--", "--", "") #Delete prompt from document
     word.replace_block(",,", ",,", r)
 
-def find_agent_prompt_replace(word: wordwrapper.WordWrapper):
+def find_judge_prompt_replace(word: wordwrapper.WordWrapper):
     word.make_hidden_visible()
     prompt = word.get_block("---", "---")
 
     if prompt is None:
         return
     prompt = prompt if isinstance(prompt, str) else prompt[0]
-    r = client.send_agent_prompt(prompt)
+    r = client.send_judge_prompt(prompt)
     if r is None:
         return
     word.replace_blocks("---", "---", "") #Delete prompt from document
@@ -108,19 +108,19 @@ def handle_deactivated(word: wordwrapper.WordWrapper):
         word.make_hidden_visible()
         word.replace_blocks("", ";;;", "")
 
-        agent_prompt = word.get_block("---", "---") is not None
+        judge_prompt = word.get_block("---", "---") is not None
         prompt = word.get_block("--", "--") is not None
         command = word.get_block("::", "::")
         
-        print(prompt, agent_prompt, command)
+        print(prompt, judge_prompt, command)
         mt = None
         se = None
-        if prompt or agent_prompt or command is not None:
+        if prompt or judge_prompt or command is not None:
             mt, se = start_mouse_movement()
 
 
-        if agent_prompt:
-            find_agent_prompt_replace(word)
+        if judge_prompt:
+            find_judge_prompt_replace(word)
         elif prompt:
             find_prompt_replace(word)
         if command is not None:

@@ -86,9 +86,9 @@ class Client:
             print(f"Error: {error}")
             return None
 
-    def send_agent_prompt(self, prompt: str) -> str:
-        """Send a prompt through the writer/sensor loop and get response."""
-        response = self._send_and_wait("AGENT_PROMPT", [prompt], timeout=600)
+    def send_judge_prompt(self, prompt: str) -> str:
+        """Send a prompt to the judge and get response."""
+        response = self._send_and_wait("JUDGE", [prompt], timeout=120)
         if response is None:
             return None
 
