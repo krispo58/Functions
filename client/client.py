@@ -72,33 +72,13 @@ class Client:
         if response is None:
             return False
         return response.get("status") == "success" and response.get("data") == "success"
-
-    def new_judge(self) -> bool:
-        """Reset only the judge chat session."""
-        response = self._send_and_wait("NEW_JUDGE", timeout=10)
-        if response is None:
-            return False
-        return response.get("status") == "success" and response.get("data") == "success"
     
     def send_prompt(self, prompt: str) -> str:
         """Send a prompt to the LLM and get response."""
-        response = self._send_and_wait("PROMPT", [prompt], timeout=120)
+        response = self._send_and_wait("PROMPT", [prompt], timeout=30)
         if response is None:
             return None
         
-        if response.get("status") == "success":
-            return response.get("data")
-        else:
-            error = response.get("error", "Unknown error")
-            print(f"Error: {error}")
-            return None
-
-    def send_judge_prompt(self, prompt: str) -> str:
-        """Send a prompt to the judge and get response."""
-        response = self._send_and_wait("JUDGE", [prompt], timeout=120)
-        if response is None:
-            return None
-
         if response.get("status") == "success":
             return response.get("data")
         else:
@@ -106,14 +86,30 @@ class Client:
             print(f"Error: {error}")
             return None
     
-    def fallback(self):
-        """Manually trigger fallback response from server."""
-        response = self._send_and_wait("FALLBACK", timeout=10)
+    def switch_provider(self, provider: str) -> str:
+        """Switch between 'openai' and 'groq'."""
+        response = self._send_and_wait("SWITCH", [provider], timeout=10)
         if response is None:
             return None
         
-        return response.get("status") == "success"
-
+        if response.get("status") == "success":
+            return response.get("data")
+        else:
+            error = response.get("error", "Unknown error")
+            print(f"Error: {error}")
+            return None
+    
+    def get_provider(self) -> str:
+        """Get the current LLM provider."""
+        response = self._send_and_wait("PROVIDER", [], timeout=10)
+        if response is None:
+            return None
+        
+        if response.get("status") == "success":
+            return response.get("data")
+        else:
+            return None
+    
     def close(self):
         """Clean up and stop listening."""
         self.tunnel.stop_listening()

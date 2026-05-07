@@ -27,11 +27,10 @@ class Server:
         self.llm = llmapi.LLM()
         self.commands = {
             "PROMPT": self._prompt,
-            "JUDGE": self._judge,
             "ACK": self._ack,
-            "FALLBACK": self._fallback,
-            "NEW_JUDGE": self._new_judge,
-            "NEW": self._new
+            "NEW": self._new,
+            "SWITCH": self._switch,
+            "PROVIDER": self._provider
         }
         if debug:
             print(f"Server initialized with Firebase project: {project_id}")
@@ -96,38 +95,34 @@ class Server:
         if self.debug:
             print("LLM response:", response[:100] + "..." if len(response) > 100 else response)
         return response
-
-    def _judge(self, args: list) -> str:
-        """Process JUDGE command."""
-        print("[SERVER] Received JUDGE command.", flush=True)
-        if self.debug:
-            print("Processing JUDGE command... arguments:", args)
-        judge_content = args[0]
-        response = self.llm.judge(judge_content)
-        print("[SERVER] Finished JUDGE command.", flush=True)
-        if self.debug:
-            print("Judge response:", response[:100] + "..." if len(response) > 100 else response)
-        return response
     
     def _ack(self, args: list) -> str:
         """Process ACK command."""
         self._new([])  # Reset chat history on ACK to ensure clean state
+        self.llm.switch_to_groq()  # Reset to Groq on reconnect
         return "ACK"
     
     def _new(self, args: list) -> str:
         """Process NEW command."""
         self.llm.reset_chat_history()
         return "success"
-
-    def _new_judge(self, args: list) -> str:
-        """Process NEW_JUDGE command."""
-        self.llm.reset_judge_history()
-        return "success"
-
-    def _fallback(self, args: list) -> str:
-        """Manual fallback override"""
-        response = self.llm.fallback()
-        return "success" if response else "failure"
+    
+    def _switch(self, args: list) -> str:
+        """Switch between OpenAI and Groq."""
+        if not args or len(args) == 0:
+            return f"Error: Please specify 'openai' or 'groq'. Current: {self.llm.get_provider()}"
+        
+        provider = args[0].lower().strip()
+        if provider == "openai":
+            return self.llm.switch_to_openai()
+        elif provider == "groq":
+            return self.llm.switch_to_groq()
+        else:
+            return f"Error: Unknown provider '{provider}'. Use 'openai' or 'groq'."
+    
+    def _provider(self, args: list) -> str:
+        """Get the current provider."""
+        return self.llm.get_provider()
     
     def start(self):
         """Start the server and listen for incoming requests."""

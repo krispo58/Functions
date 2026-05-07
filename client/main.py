@@ -5,11 +5,11 @@ import pythoncom
 import pywintypes
 import os
 import notifier
-import pyautogui
 import threading
+import pyautogui
 
 
-os.environ["FIREBASE_PROJECT_ID"] = "moneymoneygreengreen-e3e24"
+os.environ["FIREBASE_PROJECT_ID"] = "my-awesome-project-3c43d"
 
 #server_ip ="51.175.238.64"
 #server_port = 7777
@@ -21,14 +21,8 @@ word_is_open = True
 stop = False
 
 def reset(args: list[str]):
-    if client.new_chat():
+    if _with_mouse_activity(client.new_chat):
         word.write_start("word")
-    else:
-        word.write_start("sentence")
-
-def reset_judge(args: list[str]):
-    if client.new_judge():
-        word.write_start("judge")
     else:
         word.write_start("sentence")
 
@@ -41,72 +35,64 @@ def stop_program(args: list[str]):
     global stop
     stop = True
 
-def fallback(args: list[str]):
-    response = client.fallback()
-    if response is None:
-        word.write_end("sentence")
-    else:
-        word.write_end("word")
+def switch_provider(args: list[str]):
+    """Switch between OpenAI and Groq providers."""
+    if not args or len(args) == 0:
+        provider = client.get_provider()
+        word.write_end("Provider: " + str(provider))
+        return
+    
+    provider = args[0].lower().strip() if isinstance(args[0], str) else ""
+    result = client.switch_provider(provider)
+    word.write_end(str(result))
+
+def get_provider_status(args: list[str]):
+    """Get the current provider status."""
+    provider = client.get_provider()
+    word.write_end("Using: " + str(provider))
 
 commands = {
     "stop": stop_program,
     "new": reset,
     "reset": reset,
-    "newjudge": reset_judge,
-    "resetjudge": reset_judge,
-    "fallback": fallback,
-    "test": test
+    "test": test,
+    "provider": get_provider_status,
+    "switch": switch_provider
 }
 
-
 def start_mouse_movement():
-    stop_event = threading.Event()
-
     def move_mouse():
-        while not stop_event.is_set():
-            pyautogui.move(0, 5)
+        while True:
+            pyautogui.move(0, 1)
             time.sleep(0.1)
-            pyautogui.move(0, -5)
+            pyautogui.move(0, -1)
             time.sleep(0.1)
-
     thread = threading.Thread(target=move_mouse, daemon=True)
     thread.start()
+    return thread
 
-    return thread, stop_event
-
-
-def stop_mouse_movement(thread, stop_event):
-    if thread is None:
-        return
-
+def stop_mouse_movement(thread: threading.Thread):
     if thread.is_alive():
-        stop_event.set()
-        thread.join()
+        thread.join(timeout=0)
+
+def _with_mouse_activity(func):
+    """Execute a function while keeping the mouse moving."""
+    mt = start_mouse_movement()
+    try:
+        result = func()
+    finally:
+        stop_mouse_movement(mt)
+    return result
 
 def find_prompt_replace(word: wordwrapper.WordWrapper):
     word.make_hidden_visible()
     prompt = word.get_block("--", "--")
+    prompt = prompt if isinstance(prompt, str) else prompt[0]
 
     if prompt is None:
         return
-    prompt = prompt if isinstance(prompt, str) else prompt[0]
     r = client.send_prompt(prompt)
-    if r is None:
-        return
     word.replace_blocks(f"--", "--", "") #Delete prompt from document
-    word.replace_block(",,", ",,", r)
-
-def find_judge_prompt_replace(word: wordwrapper.WordWrapper):
-    word.make_hidden_visible()
-    prompt = word.get_block("---", "---")
-
-    if prompt is None:
-        return
-    prompt = prompt if isinstance(prompt, str) else prompt[0]
-    r = client.send_judge_prompt(prompt)
-    if r is None:
-        return
-    word.replace_blocks("---", "---", "") #Delete prompt from document
     word.replace_block(",,", ",,", r)
 
 def handle_deactivated(word: wordwrapper.WordWrapper):
@@ -116,28 +102,20 @@ def handle_deactivated(word: wordwrapper.WordWrapper):
         word.make_hidden_visible()
         word.replace_blocks("", ";;;", "")
 
-        judge_prompt = word.get_block("---", "---") is not None
         prompt = word.get_block("--", "--") is not None
-        command = word.get_block("::", "::")
+        command = word.get_block("::", "::").lower()
         
-        print(prompt, judge_prompt, command)
-        mt = None
-        se = None
-        if prompt or judge_prompt or command is not None:
-            mt, se = start_mouse_movement()
+        print(prompt, command)
 
 
-        if judge_prompt:
-            find_judge_prompt_replace(word)
-        elif prompt:
-            find_prompt_replace(word)
+        if prompt:
+                find_prompt_replace(word)
         if command is not None:
             command = command if isinstance(command, str) else command[0]
-            command = command.lower()
-
+            mt = start_mouse_movement()
             commands[command]([word.get_block(",,", ",,")])
             word.replace_blocks("::", "::", "")
-        stop_mouse_movement(mt, se)
+            stop_mouse_movement(mt)
         print("Flashing taskbar")
         notifier.notify()
     except pywintypes.com_error as e:
@@ -155,17 +133,16 @@ def main():
         word.open_new_doc()
 
     #Test dns connection
-    result = client.ack()
-    res_text = "word\r\n" if result else "sentence\r\n"
-    word.write_start(res_text)
+    result = _with_mouse_activity(client.ack)
     if not result:
         raise Exception("Couldn't connect to server.")
-    
     print("Connection successful")
-    if not client.new_chat():
+    if not _with_mouse_activity(client.new_chat):
         print("Could not create new chat on server. Answers may be off.")
     print("Ready")
 
+    res_text = "word\r\n" if result else "sentence\r\n"
+    word.write_start(res_text)
 
     word.on_word_deactivated = handle_deactivated
 
@@ -190,9 +167,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    exit()
-
-    #Testing mouse movement
-    mt = start_mouse_movement()
-    time.sleep(5)
-    stop_mouse_movement(mt)
