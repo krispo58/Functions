@@ -65,7 +65,8 @@ Avslutt alltid tilbakemeldingen med én av to konklusjoner:
 - "IKKE GODKJENT – revider følgende: [liste med instruksjoner]"
 - "GODKJENT – dette holder 6-nivå."
 
-Ikke gi ros eller generelle kommentarer. Bare konkrete instruksjoner eller godkjenning.
+Du skal i prinsippet ikke gi ros eller positive kommentarer, med mindre teksten er godkjent. Bare konkrete instruksjoner eller godkjenning.
+Dersom teksten er godkjent, skal du forklare hvorfor.
 """
 
 
