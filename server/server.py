@@ -29,7 +29,8 @@ class Server:
             "PROMPT": self._prompt,
             "ACK": self._ack,
             "NEW": self._new,
-            "SWITCH": self._switch
+            "SWITCH": self._switch,
+            "JUDGE": self._judge_handler
         }
         if debug:
             print(f"Server initialized with Firebase project: {project_id}")
@@ -110,6 +111,16 @@ class Server:
     def _switch(self, args: list) -> str:
         """Process SWITCH command to toggle between OpenAI and Groq."""
         return self.llm.toggle_llm()
+    
+    def _judge_handler(self, args: list) -> str:
+        """Process JUDGE command."""
+        if self.debug:
+            print("Processing JUDGE command... arguments:", args)
+        prompt_content = args[0]
+        response = self.llm.judge(prompt_content)
+        if self.debug:
+            print("Judge response:", response[:100] + "..." if len(response) > 100 else response)
+        return response
     
     def start(self):
         """Start the server and listen for incoming requests."""

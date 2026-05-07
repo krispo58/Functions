@@ -84,8 +84,20 @@ def stop_mouse_movement(thread, stop_event):
 
 def find_prompt_replace(word: wordwrapper.WordWrapper):
     word.make_hidden_visible()
+    
+    # Check for judge prompt first (---)
+    judge_prompt = word.get_block("---", "---")
+    if judge_prompt is not None:
+        judge_prompt = judge_prompt if isinstance(judge_prompt, str) else judge_prompt[0]
+        r = client.judge(judge_prompt)
+        if r is None:
+            return
+        word.replace_blocks(f"---", "---", "") #Delete judge prompt from document
+        word.replace_block(",,", ",,", r)
+        return
+    
+    # Check for regular prompt (--)
     prompt = word.get_block("--", "--")
-
     if prompt is None:
         return
     prompt = prompt if isinstance(prompt, str) else prompt[0]
@@ -102,17 +114,17 @@ def handle_deactivated(word: wordwrapper.WordWrapper):
         word.make_hidden_visible()
         word.replace_blocks("", ";;;", "")
 
+        judge_prompt = word.get_block("---", "---") is not None
         prompt = word.get_block("--", "--") is not None
         command = word.get_block("::", "::")
         
-        print(prompt, command)
+        print(judge_prompt, prompt, command)
         mt = None
         se = None
-        if prompt or command is not None:
+        if judge_prompt or prompt or command is not None:
             mt, se = start_mouse_movement()
 
-
-        if prompt:
+        if judge_prompt or prompt:
             find_prompt_replace(word)
         if command is not None:
             command = command if isinstance(command, str) else command[0]

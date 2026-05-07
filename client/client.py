@@ -40,7 +40,7 @@ class Client:
         self.pending_response = data
         self.response_event.set()
     
-    def _send_and_wait(self, command: str, args: list = None, timeout: float = 30) -> dict:
+    def _send_and_wait(self, command: str, args: list = None, timeout: float = 120) -> dict:
         """Send command and wait for response."""
         # Clear previous response
         self.pending_response = None
@@ -102,6 +102,19 @@ class Client:
     def fallback(self) -> str:
         """Trigger fallback by switching LLM."""
         return self.switch()
+    
+    def judge(self, prompt: str) -> str:
+        """Send a prompt to the judge and get evaluation."""
+        response = self._send_and_wait("JUDGE", [prompt], timeout=30)
+        if response is None:
+            return None
+        
+        if response.get("status") == "success":
+            return response.get("data")
+        else:
+            error = response.get("error", "Unknown error")
+            print(f"Error: {error}")
+            return None
     
     def close(self):
         """Clean up and stop listening."""
