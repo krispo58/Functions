@@ -29,8 +29,7 @@ class Server:
             "PROMPT": self._prompt,
             "ACK": self._ack,
             "NEW": self._new,
-            "SWITCH": self._switch,
-            "PROVIDER": self._provider
+            "SWITCH": self._switch
         }
         if debug:
             print(f"Server initialized with Firebase project: {project_id}")
@@ -99,30 +98,18 @@ class Server:
     def _ack(self, args: list) -> str:
         """Process ACK command."""
         self._new([])  # Reset chat history on ACK to ensure clean state
-        self.llm.switch_to_groq()  # Reset to Groq on reconnect
+        self.llm.use_fallback = True  # Reset to Groq on reconnect
         return "ACK"
     
     def _new(self, args: list) -> str:
         """Process NEW command."""
         self.llm.reset_chat_history()
+        self.llm.use_fallback = True  # Reset to Groq
         return "success"
     
     def _switch(self, args: list) -> str:
-        """Switch between OpenAI and Groq."""
-        if not args or len(args) == 0:
-            return f"Error: Please specify 'openai' or 'groq'. Current: {self.llm.get_provider()}"
-        
-        provider = args[0].lower().strip()
-        if provider == "openai":
-            return self.llm.switch_to_openai()
-        elif provider == "groq":
-            return self.llm.switch_to_groq()
-        else:
-            return f"Error: Unknown provider '{provider}'. Use 'openai' or 'groq'."
-    
-    def _provider(self, args: list) -> str:
-        """Get the current provider."""
-        return self.llm.get_provider()
+        """Process SWITCH command to toggle between OpenAI and Groq."""
+        return self.llm.toggle_llm()
     
     def start(self):
         """Start the server and listen for incoming requests."""

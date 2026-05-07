@@ -86,9 +86,9 @@ class Client:
             print(f"Error: {error}")
             return None
     
-    def switch_provider(self, provider: str) -> str:
-        """Switch between 'openai' and 'groq'."""
-        response = self._send_and_wait("SWITCH", [provider], timeout=10)
+    def switch(self) -> str:
+        """Switch between OpenAI and Groq."""
+        response = self._send_and_wait("SWITCH", timeout=10)
         if response is None:
             return None
         
@@ -99,16 +99,9 @@ class Client:
             print(f"Error: {error}")
             return None
     
-    def get_provider(self) -> str:
-        """Get the current LLM provider."""
-        response = self._send_and_wait("PROVIDER", [], timeout=10)
-        if response is None:
-            return None
-        
-        if response.get("status") == "success":
-            return response.get("data")
-        else:
-            return None
+    def fallback(self) -> str:
+        """Trigger fallback by switching LLM."""
+        return self.switch()
     
     def close(self):
         """Clean up and stop listening."""

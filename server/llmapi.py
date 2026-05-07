@@ -121,14 +121,13 @@ Vent på oppgaven før du skriver.
 """
 
 class LLM:
-    def __init__(self, openai_model: str = "gpt-4o-mini", groq_model: str = "mixtral-8x7b-32768", temperature: float = 0.4, top_p: float = 0.9):
+    def __init__(self, openai_model: str = "gpt-4o-mini", fallback_model: str = "mixtral-8x7b-32768", temperature: float = 0.4, top_p: float = 0.9):
         self.groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         self.openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
         self.openai_model = openai_model
-        self.groq_model = groq_model
-        self.use_openai = False  # Default to Groq
-        self.openai_failed = False  # Track if OpenAI fails
+        self.fallback_model = fallback_model
+        self.use_fallback = True  # Default to Groq
 
         self.temperature = temperature
         self.top_p = top_p
@@ -152,17 +151,15 @@ class LLM:
                 messages=self.messages,
                 temperature=self.temperature,
                 top_p=self.top_p,
-                reasoning_effort="medium"
             )
             
             answer = response.choices[0].message.content
             self.messages.append({"role": "assistant", "content": answer})
-            self.openai_failed = False
             return answer
 
         except Exception as e:
-            print(f"OpenAI Error: {e}. Falling back to Groq.")
-            self.openai_failed = True
+            print(f"OpenAI Error (Context issue or Rate Limit): {e}. Falling back.")
+            self.use_fallback = True
             # Remove the message from history and retry with Groq
             self.messages.pop() 
             return self._prompt_groq(content)
@@ -171,7 +168,7 @@ class LLM:
         self.messages.append({"role": "user", "content": content})
 
         completion = self.groq_client.chat.completions.create(
-            model=self.groq_model,
+            model=self.fallback_model,
             messages=self.messages,
             temperature=self.temperature,
             top_p=self.top_p,
@@ -182,25 +179,13 @@ class LLM:
         self.messages.append({"role": "assistant", "content": answer})
         return answer
 
+    def toggle_llm(self) -> str:
+        """Toggle between OpenAI and Groq."""
+        self.use_fallback = not self.use_fallback
+        current_llm = "Groq" if self.use_fallback else "OpenAI"
+        return f"Switched to {current_llm}"
+
     def prompt(self, content: str):
-        if self.use_openai and not self.openai_failed:
+        if not self.use_fallback:
             return self._prompt_openai(content)
         return self._prompt_groq(content)
-    
-    def switch_to_openai(self):
-        """Switch to using OpenAI."""
-        self.use_openai = True
-        self.openai_failed = False
-        return "Switched to OpenAI"
-    
-    def switch_to_groq(self):
-        """Switch to using Groq."""
-        self.use_openai = False
-        self.openai_failed = False
-        return "Switched to Groq"
-    
-    def get_provider(self) -> str:
-        """Get the current provider being used."""
-        if self.use_openai and not self.openai_failed:
-            return "OpenAI"
-        return "Groq"
