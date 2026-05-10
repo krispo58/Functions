@@ -303,7 +303,7 @@ Ikke bruk:
 """
 
 class LLM:
-    def __init__(self, openai_model: str = "gpt-4o-mini", fallback_model: str = "openai/gpt-oss-120b", temperature: float =  0.4, top_p: float = 0.9):
+    def __init__(self, openai_model: str = "gpt-5.5", fallback_model: str = "openai/gpt-oss-120b", temperature: float =  0.4, top_p: float = 0.9):
         self.groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         self.openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
