@@ -40,7 +40,7 @@ class Client:
         self.pending_response = data
         self.response_event.set()
     
-    def _send_and_wait(self, command: str, args: list = None, timeout: float = 120) -> dict:
+    def _send_and_wait(self, command: str, args: list = None, timeout: float = 360) -> dict:
         """Send command and wait for response."""
         # Clear previous response
         self.pending_response = None
@@ -57,38 +57,38 @@ class Client:
         if self.response_event.wait(timeout=timeout):
             return self.pending_response
         else:
-            return None
+            return "timeout"
     
     def ack(self) -> bool:
         """Test connection with ACK command."""
-        response = self._send_and_wait("ACK", timeout=10)
+        response = self._send_and_wait("ACK", timeout=30)
         if response is None:
             return False
         return response.get("status") == "success" and response.get("data") == "ACK"
     
     def new_chat(self) -> bool:
         """Start a new chat session."""
-        response = self._send_and_wait("NEW", timeout=10)
+        response = self._send_and_wait("NEW")
         if response is None:
             return False
         return response.get("status") == "success" and response.get("data") == "success"
     
     def send_prompt(self, prompt: str) -> str:
         """Send a prompt to the LLM and get response."""
-        response = self._send_and_wait("PROMPT", [prompt], timeout=30)
+        response = self._send_and_wait("PROMPT", [prompt], timeout=360)
         if response is None:
-            return None
-        
+            return "timeout"
+
         if response.get("status") == "success":
             return response.get("data")
         else:
             error = response.get("error", "Unknown error")
             print(f"Error: {error}")
-            return None
+            return "error"
     
     def switch(self) -> str:
         """Switch between OpenAI and Groq."""
-        response = self._send_and_wait("SWITCH", timeout=10)
+        response = self._send_and_wait("SWITCH", timeout=30)
         if response is None:
             return None
         
@@ -105,7 +105,7 @@ class Client:
     
     def judge(self, prompt: str) -> str:
         """Send a prompt to the judge and get evaluation."""
-        response = self._send_and_wait("JUDGE", [prompt], timeout=30)
+        response = self._send_and_wait("JUDGE", [prompt], timeout=360)
         if response is None:
             return None
         
