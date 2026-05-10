@@ -242,7 +242,7 @@ Vær like streng som en ekte eksamenssensor som leter etter grunner til å trekk
 """
 
 class LLM:
-    def __init__(self, openai_model: str = "gpt-4o-mini", fallback_model: str = "openai/gpt-oss-120b", temperature: float = 0.4, top_p: float = 0.9):
+    def __init__(self, openai_model: str = "gpt-5.5", fallback_model: str = "openai/gpt-oss-120b", temperature: float =  0.4, top_p: float = 0.9):
         self.groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         self.openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
@@ -276,8 +276,7 @@ class LLM:
             response = self.openai_client.chat.completions.create(
                 model=self.openai_model,
                 messages=self.messages,
-                temperature=self.temperature,
-                top_p=self.top_p,
+                reasoning_effort="medium",
             )
             
             answer = response.choices[0].message.content
