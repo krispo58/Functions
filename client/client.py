@@ -77,6 +77,9 @@ class Client:
         """Send a prompt to the LLM and get response."""
         response = self._send_and_wait("PROMPT", [prompt], timeout=360)
         if response is None:
+            return "error"
+        
+        if response == "timeout":
             return "timeout"
 
         if response.get("status") == "success":
@@ -107,14 +110,17 @@ class Client:
         """Send a prompt to the judge and get evaluation."""
         response = self._send_and_wait("JUDGE", [prompt], timeout=360)
         if response is None:
-            return None
+            return "error"
+        
+        if response == "timeout":
+            return "timeout"
         
         if response.get("status") == "success":
             return response.get("data")
         else:
             error = response.get("error", "Unknown error")
             print(f"Error: {error}")
-            return None
+            return f"Error: {error}"
     
     def close(self):
         """Clean up and stop listening."""
