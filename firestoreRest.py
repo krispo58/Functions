@@ -1,11 +1,15 @@
 import requests
 import uuid
 
+DEFAULT_TIMEOUT = 10  # seconds; prevents the polling thread from hanging forever
+
 
 def encode_fields(data):
     out = {}
     for k, v in data.items():
-        if isinstance(v, bool):
+        if v is None:
+            out[k] = {"nullValue": None}
+        elif isinstance(v, bool):
             out[k] = {"booleanValue": v}
         elif isinstance(v, int):
             out[k] = {"integerValue": str(v)}
@@ -27,7 +31,9 @@ def encode_fields(data):
 def decode_fields(fields):
     out = {}
     for k, v in fields.items():
-        if "stringValue" in v:
+        if "nullValue" in v:
+            out[k] = None
+        elif "stringValue" in v:
             out[k] = v["stringValue"]
         elif "integerValue" in v:
             out[k] = int(v["integerValue"])
@@ -36,13 +42,18 @@ def decode_fields(fields):
         elif "booleanValue" in v:
             out[k] = v["booleanValue"]
         elif "mapValue" in v:
-            out[k] = decode_fields(v["mapValue"]["fields"])
+            out[k] = decode_fields(v["mapValue"].get("fields", {}))
         elif "arrayValue" in v:
             out[k] = [decode_fields({"_": i})["_"] for i in v["arrayValue"].get("values", [])]
+        else:
+            out[k] = None
     return out
+
 
 class FirestoreREST:
     def __init__(self, project_id, database="(default)"):
+        if not project_id:
+            raise ValueError("project_id must be provided")
         self.base = f"https://firestore.googleapis.com/v1/projects/{project_id}/databases/{database}/documents"
 
     def collection(self, name):
@@ -60,19 +71,28 @@ class CollectionRef:
 
     def add(self, data):
         payload = {"fields": encode_fields(data)}
-        r = requests.post(self.url, json=payload)
+        r = requests.post(self.url, json=payload, timeout=DEFAULT_TIMEOUT)
         r.raise_for_status()
         return r.json()
 
     def stream(self):
-        r = requests.get(self.url)
-        r.raise_for_status()
-        docs = r.json().get("documents", [])
-        for d in docs:
-            yield {
-                "id": d["name"].split("/")[-1],
-                "data": decode_fields(d["fields"])
-            }
+        """Yield every document in the collection, following Firestore's paging."""
+        page_token = None
+        for _ in range(100):  # hard cap so a misbehaving API can't loop forever
+            params = {"pageSize": 300}
+            if page_token:
+                params["pageToken"] = page_token
+            r = requests.get(self.url, params=params, timeout=DEFAULT_TIMEOUT)
+            r.raise_for_status()
+            body = r.json()
+            for d in body.get("documents", []):
+                yield {
+                    "id": d["name"].split("/")[-1],
+                    "data": decode_fields(d.get("fields", {}))
+                }
+            page_token = body.get("nextPageToken")
+            if not page_token:
+                return
 
 
 class DocumentRef:
@@ -82,21 +102,21 @@ class DocumentRef:
 
     def set(self, data):
         payload = {"fields": encode_fields(data)}
-        r = requests.patch(self.url, json=payload)
+        r = requests.patch(self.url, json=payload, timeout=DEFAULT_TIMEOUT)
         r.raise_for_status()
 
     def update(self, data):
         self.set(data)
 
     def get(self):
-        r = requests.get(self.url)
+        r = requests.get(self.url, timeout=DEFAULT_TIMEOUT)
         if r.status_code == 404:
             return None
         r.raise_for_status()
-        return decode_fields(r.json()["fields"])
+        return decode_fields(r.json().get("fields", {}))
 
     def delete(self):
-        r = requests.delete(self.url)
+        r = requests.delete(self.url, timeout=DEFAULT_TIMEOUT)
+        if r.status_code == 404:
+            return  # already gone — not an error for our use case
         r.raise_for_status()
-
-

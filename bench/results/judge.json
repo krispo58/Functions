@@ -1,0 +1,1522 @@
+{
+ "gpt-6.2-sol|gpt-5.4-mini|retorikk": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.4-mini|retorikk",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 4,
+   "form_innhold": 5,
+   "selvstendighet": 4,
+   "sprak": 5,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Analysen forklarer hvordan mobilen framstilles som en forstyrrelse, men undersøker ikke hvorfor den kalles en «lærer»: Ordet gjør mobilen til en rival om elevens oppmerksomhet og gir dermed avsenderen et argument for at skolen bør fjerne den."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-4.1|retorikk": {
+  "judge": "gpt-5.5",
+  "key": "gpt-4.1|retorikk",
+  "scores": {
+   "karakter": 5.5,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Besvarelsen er sterk og tekstnær, men når ikke helt 6 fordi den i for liten grad analyserer logos- og troverdighetsstrategien i forskningspåstanden og fordi noen effektforklaringer blir noe ensidige og bekreftende uten alternative tolkninger eller kritisk nyansering."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-4.1|retorikk": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-4.1|retorikk",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 4,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 4,
+   "form_innhold": 5,
+   "selvstendighet": 4,
+   "sprak": 5,
+   "oppgavetilpasning": 4,
+   "hovedsvakhet": "Analysen behandler grepene hver for seg og tar virkningen for gitt: Den undersøker ikke hvordan «Forskere har målt det» låner autoritet uten å gi leseren etterprøvbare tall, eller hvordan bildet av den hviskende læreren gjør den udokumenterte forskjellen konkret."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|o3|retorikk": {
+  "judge": "gpt-6.2-sol",
+  "key": "o3|retorikk",
+  "scores": {
+   "karakter": 5.3,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 6,
+   "selvstendighet": 5,
+   "sprak": 5,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen forklarer hvordan virkemidlene kan overbevise, men prøver sjelden effekten mot en skeptisk lesning: Den kaller åpningen redelig uten å undersøke hvordan «ropte» kan framstille motstanderne som irrasjonelle, og leser godterianalogien som omsorg uten å vurdere om bildet av en «sulten tiåring» også kan virke nedlatende."
+  },
+  "error": ""
+ },
+ "gpt-5.5|o3|retorikk": {
+  "judge": "gpt-5.5",
+  "key": "o3|retorikk",
+  "scores": {
+   "karakter": 5.7,
+   "analysedybde": 6,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 5,
+   "form_innhold": 6,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Besvarelsen er svært sterk, men når ikke helt sikkert 6-nivå fordi den i liten grad vurderer mulige begrensninger ved virkemidlene eller alternative lesninger, og den er noe over oppgitt lengde."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.4-mini|retorikk": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.4-mini|retorikk",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 4,
+   "sprak": 5,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Besvarelsen er solid og tekstnær, men når ikke karakter 6 fordi analysen ofte stopper ved å forklare generell effekt i stedet for å gå dypere inn i hvordan ordvalg, struktur og retorisk strategi samlet styrer leserens vurdering."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-6-sol|retorikk": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-6-sol|retorikk",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen påpeker at sluttspørsmålet leder leseren mot et nei, men analyserer ikke hvordan «virkelig» og «for mye å be om» framstiller mobilforbudet som et beskjedent krav og dermed får motstand mot det til å virke urimelig."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.2|retorikk": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.2|retorikk",
+  "scores": {
+   "karakter": 5.4,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 5,
+   "form_innhold": 6,
+   "selvstendighet": 5,
+   "sprak": 5,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen forklarer presist hvordan «Forskere har målt det» gir påstanden autoritet, men skiller ikke mellom inntrykket av dokumentasjon og det faktiske belegget: Avsenderen oppgir verken kilde eller tall som underbygger påstanden om at forskjellen er stor."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-6-sol|retorikk": {
+  "judge": "gpt-5.5",
+  "key": "gpt-6-sol|retorikk",
+  "scores": {
+   "karakter": 5.4,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen er presis og tekstnær, men når ikke helt 6-nivå fordi analysen hovedsakelig forklarer enkeltvirkemidler hver for seg og i for liten grad drøfter den samlede retoriske strategien, målgruppen og mer komplekse virkninger."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.2|retorikk": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.2|retorikk",
+  "scores": {
+   "karakter": 5.6,
+   "analysedybde": 6,
+   "fagbegrep": 6,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 5,
+   "form_innhold": 6,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Det som hindrer en klar 6-er, er at analysen i liten grad vurderer mulige svakheter ved argumentasjonen, særlig den uspesifikke forskerhenvisningen og hvordan teksten kan styre leseren retorisk uten å dokumentere påstandene fullt ut."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.5|retorikk": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.5|retorikk",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 5,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Analysen leser omtalen av motargumentet som et tegn på at avsenderen «forstår begge sider», men overser hvordan «ropte» og «kritt og tavle» allerede framstiller motstanderne som høylytte og reduserer innvendingen deres til en karikatur."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.6-sol|retorikk": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.6-sol|retorikk",
+  "scores": {
+   "karakter": 5.5,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Avslutningsanalysen konstaterer at spørsmålet forventer et nei, men viser ikke hvordan omrammingen fra «forbud» til «invitasjon» får motstand mot mobilforbudet til å framstå som motstand mot noe så rimelig som å være til stede."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.4|retorikk": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.4|retorikk",
+  "scores": {
+   "karakter": 5.3,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 4,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen er solid og tekstnær, men når ikke 6 fordi analysen blir noe skolemessig og trygg, med for lite selvstendig vurdering av nyanser, alternative virkninger og språklige detaljer som gjentakelse, pronomenbruk og verdiladde formuleringer."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.6-sol|retorikk": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.6-sol|retorikk",
+  "scores": {
+   "karakter": 5.5,
+   "analysedybde": 5.5,
+   "fagbegrep": 5.8,
+   "konkretisering": 5.6,
+   "rod_trad": 5.7,
+   "forstaelse": 5.6,
+   "tolkningsniva": 5.4,
+   "form_innhold": 5.5,
+   "selvstendighet": 5.2,
+   "sprak": 5.7,
+   "oppgavetilpasning": 5.8,
+   "hovedsvakhet": "Besvarelsen er svært solid, men når ikke helt karakter 6 fordi analysen tidvis blir ryddig og korrekt heller enn virkelig selvstendig og dyptpløyende, særlig ved at flere virkemidler forklares godt isolert uten å utvikle en mer samlet tolkning av avsenderens overordnede overtalelsesstrategi."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.5|retorikk": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.5|retorikk",
+  "scores": {
+   "karakter": 5.2,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Besvarelsen er solid og tekstnær, men når ikke 6 fordi analysen til tider blir noe skolemessig og bekreftende, med for lite selvstendig vurdering av nyanser, svakheter og alternative virkninger i argumentasjonen."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.4|retorikk": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.4|retorikk",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 5,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen forklarer presist hvordan «hvisker» gjør mobilens påvirkning snikende, men vurderer argumentasjonen for ukritisk: Den kaller forskerhenvisningen en «tydelig årsakssammenheng» uten å skille mellom den autoriteten henvisningen gir, og det teksten faktisk dokumenterer."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-4.1|dikt": {
+  "judge": "gpt-5.5",
+  "key": "gpt-4.1|dikt",
+  "scores": {
+   "karakter": 5.2,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 5,
+   "oppgavetilpasning": 4,
+   "hovedsvakhet": "Besvarelsen er tekstnær og solid, men når ikke 6 fordi enkelte fagbegreper brukes litt upresist, analysen blir stedvis for entydig og forklarende, og teksten overskrider den oppgitte lengden tydelig."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-4.1|dikt": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-4.1|dikt",
+  "scores": {
+   "karakter": 4.5,
+   "analysedybde": 5,
+   "fagbegrep": 4,
+   "konkretisering": 5,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 4,
+   "selvstendighet": 4,
+   "sprak": 4,
+   "oppgavetilpasning": 4,
+   "hovedsvakhet": "Den klart overlange besvarelsen drøfter i liten grad hvordan formen skaper mening: Den sidestiller fri versform med fravær av rytme i stedet for å vise hvordan linjebruddet etter «Det bare er,» og den korte sluttlinjen «Ingen har brøytet» styrer tempoet og gir husets likegyldighet og den ubrøytede veien ettertrykk."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-6.2-sol|retorikk": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-6.2-sol|retorikk",
+  "scores": {
+   "karakter": 5.7,
+   "analysedybde": 6,
+   "fagbegrep": 6,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 6,
+   "form_innhold": 5,
+   "selvstendighet": 6,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Avslutningsanalysen hevder upresist at «forbud» erstattes av «invitasjon», men viser ikke hvordan «ikke … det er …» omrammer tiltaket, eller hvordan treleddet «i samtalen, i faget, i friminuttet» gjør løftet om nærvær konkret."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.4-mini|dikt": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.4-mini|dikt",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 4,
+   "konkretisering": 5,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 4,
+   "selvstendighet": 5,
+   "sprak": 5,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Besvarelsen underbygger tolkningen av fremmedgjøring, men overser diktets mest konsentrerte formgrep: Gjentakelsen i «for liten, for gammel, for min» setter det at jakka ikke lenger passer, opp mot det at den fortsatt er jeg-ets, og kunne ha utfordret den entydige lesningen av hjemkomsten som tap av tilhørighet."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.4-mini|dikt": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.4-mini|dikt",
+  "scores": {
+   "karakter": 5.1,
+   "analysedybde": 5,
+   "fagbegrep": 4,
+   "konkretisering": 5,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen er tekstnær og presis, men når ikke karakter 6 fordi den i for liten grad analyserer diktets formelle oppbygning og fordi enkelte virkemiddelpoeng, særlig personifikasjonen i «Døra klemmer», blir noe for entydige og ikke drøftet som mulig dobbel betydning eller konkret hverdagsspråk."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-6.2-sol|retorikk": {
+  "judge": "gpt-5.5",
+  "key": "gpt-6.2-sol|retorikk",
+  "scores": {
+   "karakter": 5.6,
+   "analysedybde": 5.5,
+   "fagbegrep": 5.3,
+   "konkretisering": 5.7,
+   "rod_trad": 5.8,
+   "forstaelse": 5.7,
+   "tolkningsniva": 5.5,
+   "form_innhold": 5.6,
+   "selvstendighet": 5.6,
+   "sprak": 5.8,
+   "oppgavetilpasning": 5.4,
+   "hovedsvakhet": "Besvarelsen er svært solid, men når ikke helt karakter 6 fordi analysen noen steder kunne gått enda dypere i hvordan retoriske appeller, mottakerposisjon og avsenderens autoritet virker sammen, og fordi teksten er litt over angitt lengde."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.2|dikt": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.2|dikt",
+  "scores": {
+   "karakter": 5.6,
+   "analysedybde": 6,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 5,
+   "form_innhold": 6,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen er svært tekstnær og analytisk, men når ikke helt 6 fordi drøftingen i liten grad åpner for alternative tolkninger eller problematiserer hovedlesningen av hjemkomsten som fremmedgjøring."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.2|dikt": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.2|dikt",
+  "scores": {
+   "karakter": 5.4,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Tolkningen blir for entydig når «Ingen har brøytet» leses som at ingen har ryddet plass for jeget, uten at besvarelsen drøfter om fjordbildets «uansett hvem som ser på den» heller peker mot et hjem som består uten verken å avvise eller vente på jeget."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-6.2-astra|retorikk": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-6.2-astra|retorikk",
+  "scores": {
+   "karakter": 5.8,
+   "analysedybde": 5,
+   "fagbegrep": 6,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 6,
+   "form_innhold": 6,
+   "selvstendighet": 6,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen påpeker at ønsket om mer nærvær ikke nødvendigvis begrunner et mobilforbud, men viser ikke hvordan «Vi fjerner skålen» får spranget fra å legge bort mobilen til å innføre et generelt forbud til å framstå som selvsagt."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-6.2-astra|retorikk": {
+  "judge": "gpt-5.5",
+  "key": "gpt-6.2-astra|retorikk",
+  "scores": {
+   "karakter": 5.7,
+   "analysedybde": 6,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 5,
+   "form_innhold": 6,
+   "selvstendighet": 6,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen er svært sterk, men når ikke helt en sikker 6-er fordi den i liten grad løfter enkeltanalysene inn i en samlet vurdering av avsenderens retoriske strategi og hvordan ulike lesergrupper kan reagere på den."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-6-sol|dikt": {
+  "judge": "gpt-5.5",
+  "key": "gpt-6-sol|dikt",
+  "scores": {
+   "karakter": 5.4,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen er sterk og tekstnær, men når ikke helt 6 fordi analysen flere steder forklarer virkningen godt uten å gå helt inn i de finere språklige og formelle mekanismene eller drøfte flere mulige tolkninger av sentrale bilder."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|o3|dikt": {
+  "judge": "gpt-6.2-sol",
+  "key": "o3|dikt",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 4,
+   "konkretisering": 6,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 4,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 5,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Besvarelsen gjør plausible tolkninger til sikre konklusjoner, særlig når «Ingen har brøytet» kalles et «konkret bevis» på at hjemreisen ikke var forventet, uten å drøfte om den ubrøytede veien heller uttrykker jegets opplevelse av avstand enn andres forventninger."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-6-sol|dikt": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-6-sol|dikt",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen hevder at linjeskiftene gir utsagnene tyngde, men forklarer ikke hvordan den korte linjen «Det bare er,» lar husets blotte eksistens stå et øyeblikk for seg selv før fjordsammenligningen gjør uavhengigheten av jeg-personen tydelig."
+  },
+  "error": ""
+ },
+ "gpt-5.5|o3|dikt": {
+  "judge": "gpt-5.5",
+  "key": "o3|dikt",
+  "scores": {
+   "karakter": 5.5,
+   "analysedybde": 6,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 6,
+   "selvstendighet": 5,
+   "sprak": 5,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Besvarelsen er svært tekstnær og analytisk, men når ikke helt karakter 6 fordi enkelte tolkninger blir for bastante og noen fagbegreper/virkemiddelavlesninger virker litt presset eller upresise."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.4|dikt": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.4|dikt",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 4,
+   "hovedsvakhet": "Besvarelsen underbygger fremmedgjøringstolkningen tekstnært, men drøfter ikke om linjebruddet etter «Det bare er» og sammenligningen med fjorden også kan fremstille husets varighet som en form for trygghet, snarere enn bare som likegyldighet."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.6-sol|dikt": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.6-sol|dikt",
+  "scores": {
+   "karakter": 5.5,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen er svært tekstnær og presis, men når ikke helt 6 fordi drøftingen av formelle virkemidler og alternative tolkningsmuligheter er noe begrenset og analysen følger en trygg, ganske entydig hovedtolkning."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.6-sol|dikt": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.6-sol|dikt",
+  "scores": {
+   "karakter": 5.4,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Analysen feilleser «Huset venter ikke på meg» som om huset først faktisk blir tillagt forventning, og går dermed glipp av hvordan nektelsen setter jegets ønske om å bli ventet på opp mot husets uavhengighet, en kontrast fjordsammenligningen forsterker."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-4.1|novelle": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-4.1|novelle",
+  "scores": {
+   "karakter": 4.8,
+   "analysedybde": 4,
+   "fagbegrep": 4,
+   "konkretisering": 5,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 4,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 5,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Analysen blir for entydig til å nå toppnivå: Den leser gjentakelsen «to ganger, og så en gang til» som et behov for bekreftelse uten å undersøke hvordan avskjedsformuleringen «Takk for alt» også kan gjøre anerkjennelsen urovekkende for Arne."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.4|dikt": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.4|dikt",
+  "scores": {
+   "karakter": 5.4,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Besvarelsen er tekstnær og presis, men når ikke helt karakter 6 fordi den i for liten grad drøfter alternative tolkninger og går ikke langt nok i analysen av diktets formelle oppbygning utover korte linjer, pauser og dempet tone."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-4.1|novelle": {
+  "judge": "gpt-5.5",
+  "key": "gpt-4.1|novelle",
+  "scores": {
+   "karakter": 5.1,
+   "analysedybde": 5,
+   "fagbegrep": 4,
+   "konkretisering": 5,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 5,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Besvarelsen er tekstnær og god, men når ikke 6 fordi enkelte fagbegreper brukes unøyaktig og noen tolkninger, særlig om gul farge og symbolikk, blir mer påståtte enn mekanisk forklart ut fra teksten."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.5|dikt": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.5|dikt",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 4,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 4,
+   "hovedsvakhet": "Besvarelsen forklarer ordvalgene mer presist enn formen: Den viser ikke hvordan linjebruddet etter «Det bare er,» lar utsagnet stå alene før fjordsammenligningen, eller hvordan den korte sluttlinjen gjør fraværet av en oppbrøytet vei til diktets siste poeng."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.4-mini|novelle": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.4-mini|novelle",
+  "scores": {
+   "karakter": 5.3,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen er tydelig og tekstnær, men når ikke helt 6-nivå fordi analysen i for liten grad går inn i fortellertekniske detaljer, språklige mikronyanser og alternative tolkninger av lappen og avslutningen."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-6.2-sol|dikt": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-6.2-sol|dikt",
+  "scores": {
+   "karakter": 5.8,
+   "analysedybde": 5,
+   "fagbegrep": 6,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 6,
+   "form_innhold": 5,
+   "selvstendighet": 6,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Avslutningen tolker veimotivet tekstnært, men registrerer at strofene blir kortere uten å vise hvordan den knappe sluttstrofen og den isolerte setningen «Ingen har brøytet» lar hjemkomsten ende uten en avklaring av jegets tilhørighet."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.5|dikt": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.5|dikt",
+  "scores": {
+   "karakter": 5.4,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 5,
+   "forstaelse": 6,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 4,
+   "hovedsvakhet": "Besvarelsen er tekstnær og moden, men når ikke helt 6 fordi formanalysen er noe begrenset og generell, enkelte fagbegreper brukes litt diskutabelt, og teksten er klart lengre enn oppgitt omfang."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-6.2-sol|dikt": {
+  "judge": "gpt-5.5",
+  "key": "gpt-6.2-sol|dikt",
+  "scores": {
+   "karakter": 5.7,
+   "analysedybde": 6,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 6,
+   "form_innhold": 5,
+   "selvstendighet": 6,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Det som hindrer en helt klar 6-er, er at formanalysen er noe smal og kunne gått enda mer presist inn i linjebrudd, pauser og komposisjon som meningsskapende mekanismer, ikke bare strofeforkorting og rytme i ett sitat."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.4-mini|novelle": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.4-mini|novelle",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 5,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen overser at den skjeve lappen speiler den skjeve døra, og går dermed glipp av hvordan avslutningen knytter Arnes blikk for bygningens små detaljer til den beskjedne handlingen som røper at takken betyr noe for ham."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.2|novelle": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.2|novelle",
+  "scores": {
+   "karakter": 5.5,
+   "analysedybde": 6,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 5,
+   "form_innhold": 6,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Besvarelsen er svært tekstnær og presis, men når ikke helt karakter 6 fordi den i liten grad åpner for alternative tolkninger og tidvis bruker fagbegrep på en litt skolepreget og forklarende måte, særlig når metafor defineres i stedet for å analyseres enda dypere."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.2|novelle": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.2|novelle",
+  "scores": {
+   "karakter": 5.4,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 6,
+   "selvstendighet": 5,
+   "sprak": 5,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Tolkningen blir for entydig når «Takk for alt, Arne» bare leses som anerkjennelse og «som om ingenting hadde skjedd» som tegn på et skjult behov for å bli sett, uten at den mulige avskjedstonen i «for alt» får utfordre lesningen av Arnes reaksjon."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-6.2-astra|dikt": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-6.2-astra|dikt",
+  "scores": {
+   "karakter": 5.8,
+   "analysedybde": 6,
+   "fagbegrep": 6,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 6,
+   "form_innhold": 5,
+   "selvstendighet": 6,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Sluttolkningen forklarer hva den ubrøytede veien kan bety, men viser ikke hvordan den korte sluttstrofen og den kategoriske åpningen «Ingen» formelt viderefører husets mangel på forventning i «Huset venter ikke på meg»."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-6.2-astra|dikt": {
+  "judge": "gpt-5.5",
+  "key": "gpt-6.2-astra|dikt",
+  "scores": {
+   "karakter": 5.7,
+   "analysedybde": 6,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 6,
+   "form_innhold": 5,
+   "selvstendighet": 6,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Det som holder teksten så vidt under en klar 6-er, er at den i liten grad løfter blikket mot diktets samlede form og komposisjon, og derfor blir den formelle drøftingen noe smalere enn språkanalysen."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|o3|novelle": {
+  "judge": "gpt-6.2-sol",
+  "key": "o3|novelle",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 4,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Tolkningen blir for skråsikker: Gulfargen gir ikke dekning for å utelukke administrasjonen som avsender, og påstanden om at noen «endeleg seier namnet hans» overser at navnet bare står på lappen, slik at anerkjennelsen fortsatt er indirekte."
+  },
+  "error": ""
+ },
+ "gpt-5.5|o3|novelle": {
+  "judge": "gpt-5.5",
+  "key": "o3|novelle",
+  "scores": {
+   "karakter": 5.5,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 6,
+   "selvstendighet": 5,
+   "sprak": 5,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen er svært sterk, men når ikke helt 6 fordi enkelte tolkninger, særlig om gulfargen og hvem lappen kommer fra, blir mer bastante enn tekstgrunnlaget egentlig gir dekning for."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.5|novelle": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.5|novelle",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 5,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Besvarelsen leser lappen entydig som anerkjennelse uten å undersøke hvordan avskjedsklangen i «Takk for alt, Arne» kan gjøre de gjentatte gjennomlesningene til et uttrykk også for uro, ikke bare for hvor sterkt takken treffer ham."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-6-sol|novelle": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-6-sol|novelle",
+  "scores": {
+   "karakter": 5.5,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 6,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Analysen slår for sikkert fast at slutten viser hvor uvant det er for Arne å vise at han er blitt sett, uten å undersøke hvordan «som om» og fraværet av direkte innsyn i følelsene hans holder motivet for den uendrede rutinen åpent."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-6-sol|novelle": {
+  "judge": "gpt-5.5",
+  "key": "gpt-6-sol|novelle",
+  "scores": {
+   "karakter": 5.3,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen er tekstnær og presis, men når ikke helt 6 fordi analysen i liten grad utdyper fortellerteknikken som begrenset synsvinkel, undertekst og emosjonell tilbakeholdelse, og fordi tolkningen hovedsakelig følger én trygg hovedlinje uten særlig nyansering."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.5|novelle": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.5|novelle",
+  "scores": {
+   "karakter": 5.4,
+   "analysedybde": 5.0,
+   "fagbegrep": 5.0,
+   "konkretisering": 5.0,
+   "rod_trad": 5.0,
+   "forstaelse": 5.0,
+   "tolkningsniva": 5.0,
+   "form_innhold": 5.0,
+   "selvstendighet": 5.0,
+   "sprak": 5.5,
+   "oppgavetilpasning": 5.0,
+   "hovedsvakhet": "Besvarelsen er tekstnær og presis, men når ikke helt 6 fordi analysen i hovedsak utvikler én tydelig tolkning om usynlighet og behov for anerkjennelse uten særlig nyansering, alternative lesninger eller mer selvstendig drøfting av fortellerteknikkens begrensninger og effekt."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.6-sol|novelle": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.6-sol|novelle",
+  "scores": {
+   "karakter": 5.3,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Tolkningen blir for entydig i vendepunktet: Besvarelsen leser «Takk for alt, Arne» som anerkjennelse uten å undersøke hvordan formuleringens avskjedspreg kan forklare at han leser lappen om igjen og likevel går videre «som om ingenting hadde skjedd»."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.6-sol|novelle": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.6-sol|novelle",
+  "scores": {
+   "karakter": 5.5,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 6,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen er svært solid, men når ikke helt 6 fordi tolkningen i hovedsak samler alle observasjoner under én trygg lesning av ensomhet og usynlighet, uten særlig nyansering eller drøfting av alternative betydninger i Arnes reaksjon og den avsluttende tilbakeholdenheten."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.4|novelle": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.4|novelle",
+  "scores": {
+   "karakter": 5.3,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Analysen gjør «Takk for alt, Arne» til et entydig tegn på anerkjennelse og overser at ordene også kan lyde som en avskjed, noe som kunne gitt både den gjentatte lesingen og den tilsynelatende upåvirkede avslutningen en mer sammensatt betydning."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.4-mini|drofting": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.4-mini|drofting",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 4,
+   "konkretisering": 4,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 4,
+   "sprak": 5,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen er ryddig og relevant, men blir for generell og skolemessig fordi argumentene i liten grad underbygges med konkrete eksempler, fakta eller mer selvstendig drøfting av praktiske konsekvenser."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.4|novelle": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.4|novelle",
+  "scores": {
+   "karakter": 5.4,
+   "analysedybde": 5.4,
+   "fagbegrep": 5.2,
+   "konkretisering": 5.7,
+   "rod_trad": 5.8,
+   "forstaelse": 5.5,
+   "tolkningsniva": 5.1,
+   "form_innhold": 5.6,
+   "selvstendighet": 5.0,
+   "sprak": 5.5,
+   "oppgavetilpasning": 5.1,
+   "hovedsvakhet": "Besvarelsen er tekstnær og solid, men når ikke helt 6-nivå fordi tolkningen blir nokså entydig og trygg, med lite drøfting av tvetydighet, fortellerposisjonens begrensninger og mulige alternative lesninger av Arnes reaksjon."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.4-mini|drofting": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.4-mini|drofting",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 4,
+   "fagbegrep": 5,
+   "konkretisering": 4,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 4,
+   "form_innhold": 5,
+   "selvstendighet": 4,
+   "sprak": 5,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Besvarelsen forklarer hvorfor yngre tenåringer kan trenge vern, men begrunner ikke hvorfor grensen bør gå ved nettopp 16 år, og i konklusjonen legges digital opplæring og strengere plattformkrav til aldersgrensen uten at det drøftes om disse tiltakene kunne gitt tilstrekkelig vern alene."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-6.2-sol|novelle": {
+  "judge": "gpt-5.5",
+  "key": "gpt-6.2-sol|novelle",
+  "scores": {
+   "karakter": 5.5,
+   "analysedybde": 5.5,
+   "fagbegrep": 5.1,
+   "konkretisering": 5.7,
+   "rod_trad": 5.8,
+   "forstaelse": 5.6,
+   "tolkningsniva": 5.2,
+   "form_innhold": 5.7,
+   "selvstendighet": 5.4,
+   "sprak": 5.8,
+   "oppgavetilpasning": 5.8,
+   "hovedsvakhet": "Besvarelsen er svært tekstnær og presis, men mangler et tydeligere tolkningsoverskudd med alternative lesninger og mer eksplisitt drøfting av fortellerteknikken for å nå en klar sekser."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-6.2-sol|novelle": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-6.2-sol|novelle",
+  "scores": {
+   "karakter": 5.7,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 6,
+   "selvstendighet": 6,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen leser «Takk for alt, Arne» entydig som anerkjennelse og overser at formuleringen også kan lyde som en avskjed, noe som kunne gitt den tredje gjennomlesningen og det tilsynelatende uberørte «som om ingenting hadde skjedd» en mer sammensatt betydning."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-4.1|drofting": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-4.1|drofting",
+  "scores": {
+   "karakter": 4.5,
+   "analysedybde": 4,
+   "fagbegrep": 5,
+   "konkretisering": 4,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 4,
+   "form_innhold": 4,
+   "selvstendighet": 4,
+   "sprak": 4,
+   "oppgavetilpasning": 4,
+   "hovedsvakhet": "Til tross for at teksten klart overskrider lengdekravet, begrunner den ikke hvorfor grensen bør settes ved akkurat 16 år, og konklusjonen anbefaler både en fast aldersgrense og gradvis tilgang uten å avklare hvordan de to tiltakene skal forenes."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.2|drofting": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.2|drofting",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 5,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Det avgjørende håndhevingsargumentet bygger på en ubegrunnet antakelse om at alderskontroll krever at plattformene lagrer identitetsbevis, og konklusjonen veier derfor ikke personvernrisikoen ved mindre inngripende kontrollmetoder mot den mulige beskyttelsen en 16-årsgrense kan gi."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-6.2-astra|novelle": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-6.2-astra|novelle",
+  "scores": {
+   "karakter": 5.7,
+   "analysedybde": 6,
+   "fagbegrep": 6,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 5,
+   "form_innhold": 6,
+   "selvstendighet": 6,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen leser «Takk for alt, Arne» som entydig anerkjennelse og undersøker ikke om avskjedstonen i «for alt» også kan forklare hvorfor han leser lappen om igjen, «som om bokstavene kunne endre seg»."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-4.1|drofting": {
+  "judge": "gpt-5.5",
+  "key": "gpt-4.1|drofting",
+  "scores": {
+   "karakter": 5.1,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 4,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 4,
+   "sprak": 5,
+   "oppgavetilpasning": 4,
+   "hovedsvakhet": "Besvarelsen er solid og balansert, men når ikke toppnivå fordi argumentasjonen ofte bygger på generelle og udokumenterte forskningspåstander, få presise eksempler og en noe standardisert drøfting som ikke går langt nok inn i gjennomføring, rettigheter og konsekvenser."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-6.2-astra|novelle": {
+  "judge": "gpt-5.5",
+  "key": "gpt-6.2-astra|novelle",
+  "scores": {
+   "karakter": 5.7,
+   "analysedybde": 6,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 5,
+   "form_innhold": 6,
+   "selvstendighet": 6,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen er svært sterk, men når ikke helt toppnivå fordi den i liten grad åpner for alternative tolkninger av lappen, avskjeden i «Takk for alt» og Arnes mulige følelsesmessige situasjon utover ensomhet og usynlighet."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.2|drofting": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.2|drofting",
+  "scores": {
+   "karakter": 5.5,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen er svært solid, men når ikke helt 6-nivå fordi argumentasjonen i for stor grad bygger på generelle og sannsynlige resonnementer uten presise, konkrete eksempler, empiri eller tydeligere testing av hvor gjennomførbare alternativene faktisk er."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|o3|drofting": {
+  "judge": "gpt-6.2-sol",
+  "key": "o3|drofting",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 4,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 4,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 5,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Besvarelsen forklarer hvorfor yngre brukere kan være sårbare, men viser ikke hvorfor nettopp 16 år er en bedre grense enn andre aldersgrenser eller mer målrettede tiltak mot anbefalingsalgoritmer og profilering."
+  },
+  "error": ""
+ },
+ "gpt-5.5|o3|drofting": {
+  "judge": "gpt-5.5",
+  "key": "o3|drofting",
+  "scores": {
+   "karakter": 5.5,
+   "analysedybde": 6,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Besvarelsen er svært sterk, men når ikke helt 6-nivå fordi motargumentene behandles noe instrumentelt og fordi sentrale problemer som ID-verifisering, personvern, barns rett til sosial deltakelse og forskjeller mellom plattformer ikke drøftes med samme kritiske dybde som for-argumentene."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.6-sol|drofting": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.6-sol|drofting",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen forklarer konkret hvordan algoritmer kan forsterke skadelig innhold, men begrunner behovet for beskyttelse bedre enn selve 16-årsgrensen: Den veier ikke en absolutt grense mot gradert tilgang i lys av hva sårbare unge kan miste."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.6-sol|drofting": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.6-sol|drofting",
+  "scores": {
+   "karakter": 5.5,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 4,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen er svært velformet og nyansert, men når ikke helt 6-nivå fordi argumentasjonen i for stor grad bygger på generelle og hypotetiske eksempler uten konkrete, dokumenterte tilfeller eller tydeligere kritisk veiing av motargumentene."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-6-sol|drofting": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-6-sol|drofting",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Teksten forklarer hvordan personlige anbefalinger og åpen kontakt kan skape risiko, men begrunner ikke hvorfor nettopp 16 år er riktig grense, eller hvorfor aldersgrensen trengs dersom private kontoer og begrenset kontakt fra fremmede reduserer de samme risikoene."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-6-sol|drofting": {
+  "judge": "gpt-5.5",
+  "key": "gpt-6-sol|drofting",
+  "scores": {
+   "karakter": 5.5,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 4,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen er svært godt strukturert og nyansert, men når ikke helt 6-nivå fordi argumentasjonen i hovedsak bygger på generelle og hypotetiske eksempler, uten konkrete saker, tall eller mer presis dokumentasjon som kunne gitt drøftingen større tyngde."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.4|drofting": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.4|drofting",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 5,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Teksten forklarer hvordan algoritmer kan forsterke kroppspress, men veier ikke den ekstra beskyttelsen en 16-årsgrense kan gi sammenlignet med en 13-årsgrense, mot risikoen for utenforskap og personverninngrep før den konkluderer med «tydeligere aldersgrenser»."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.4|drofting": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.4|drofting",
+  "scores": {
+   "karakter": 5.4,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen er svært ryddig og balansert, men når ikke helt toppnivå fordi drøftingen i for stor grad bygger på generelle og tenkte eksempler, og mangler mer presis dokumentasjon, konkrete samfunnseksempler eller en skarpere vurdering av hvordan en realistisk regulering faktisk bør utformes."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-5.5|drofting": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-5.5|drofting",
+  "scores": {
+   "karakter": 5.0,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 5,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 5,
+   "oppgavetilpasning": 4,
+   "hovedsvakhet": "Besvarelsen går klart over lengderammen, men argumentene for å beskytte yngre tenåringer begrunner likevel ikke hvorfor grensen bør gå ved nettopp 16 år, eller hvorfor en slik grense er bedre enn strengere standardinnstillinger for yngre brukere."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-5.5|drofting": {
+  "judge": "gpt-5.5",
+  "key": "gpt-5.5|drofting",
+  "scores": {
+   "karakter": 5.4,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 4,
+   "rod_trad": 6,
+   "forstaelse": 5,
+   "tolkningsniva": 5,
+   "form_innhold": 5,
+   "selvstendighet": 5,
+   "sprak": 6,
+   "oppgavetilpasning": 5,
+   "hovedsvakhet": "Besvarelsen er nyansert og godt strukturert, men når ikke helt toppnivå fordi argumentasjonen i for stor grad bygger på generelle og sannsynlige resonnementer uten presise eksempler, dokumentasjon eller tydeligere konkretisering av hvordan en 16-årsgrense faktisk skal avgrenses og håndheves."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-6.2-sol|drofting": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-6.2-sol|drofting",
+  "scores": {
+   "karakter": 5.5,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 5,
+   "form_innhold": 6,
+   "selvstendighet": 6,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen begrunner godt hvorfor enkelte plattformer bør ha en aldersgrense, men viser ikke hvorfor grensen bør gå ved nettopp 16 år fremfor ved en annen alder eller hvorfor en fast grense er bedre enn gradvis tilgang."
+  },
+  "error": ""
+ },
+ "gpt-6.2-sol|gpt-6.2-astra|drofting": {
+  "judge": "gpt-6.2-sol",
+  "key": "gpt-6.2-astra|drofting",
+  "scores": {
+   "karakter": 5.5,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 6,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 5,
+   "form_innhold": 6,
+   "selvstendighet": 6,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Teksten begrunner hvorfor en felles grense kan dempe sosialt press og hvorfor den bør avgrenses til bestemte plattformer, men forsvarer ikke valget av nettopp 16 år, selv etter å ha påpekt at en femtenåring ikke nødvendigvis er mindre moden enn en sekstenåring."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-6.2-sol|drofting": {
+  "judge": "gpt-5.5",
+  "key": "gpt-6.2-sol|drofting",
+  "scores": {
+   "karakter": 5.7,
+   "analysedybde": 6,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 6,
+   "form_innhold": 5,
+   "selvstendighet": 6,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Den når ikke helt 6-er fordi drøftingen i for stor grad bygger på tenkte eksempler og prinsippresonnement, uten konkrete samfunnseksempler, forskning eller presisering av hvordan en differensiert aldersgrense faktisk kan gjennomføres."
+  },
+  "error": ""
+ },
+ "gpt-5.5|gpt-6.2-astra|drofting": {
+  "judge": "gpt-5.5",
+  "key": "gpt-6.2-astra|drofting",
+  "scores": {
+   "karakter": 5.6,
+   "analysedybde": 5,
+   "fagbegrep": 5,
+   "konkretisering": 5,
+   "rod_trad": 6,
+   "forstaelse": 6,
+   "tolkningsniva": 5,
+   "form_innhold": 6,
+   "selvstendighet": 6,
+   "sprak": 6,
+   "oppgavetilpasning": 6,
+   "hovedsvakhet": "Besvarelsen er svært sterk, men når ikke helt 6 fordi argumentasjonen i for stor grad bygger på tenkte eksempler og ikke presiserer godt nok hvilke tjenester, rettigheter og håndhevingsmodeller en 16-årsgrense faktisk skal omfatte."
+  },
+  "error": ""
+ }
+}

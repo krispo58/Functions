@@ -8,3 +8,5 @@ server/__pycache__/*
 testing.py
 server/script.lock
 client/script.lock
+logs/
+venv/

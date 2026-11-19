@@ -1,15 +1,22 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
+import run_check  # noqa: F401  (enforces single-instance lock on import)
+
 import time
 import client as networkclient
+from help_text import HELP_TEXT
 import wordwrapper
 import pythoncom
 import pywintypes
-import os
 import notifier
 import pyautogui
 import threading
+import re
+from collections import deque
 
 
-os.environ["FIREBASE_PROJECT_ID"] = "moneymoneygreengreen-e3e24"
+os.environ["FIREBASE_PROJECT_ID"] = "my-awesome-project-3c43d"
 
 #server_ip ="51.175.238.64"
 #server_port = 7777
@@ -21,6 +28,7 @@ word_is_open = True
 stop = False
 
 def reset(args: list[str]):
+    answer_queue.clear()  # answers from the old chat no longer apply
     if client.new_chat():
         word.write_start("word")
     else:
@@ -29,6 +37,9 @@ def reset(args: list[str]):
 def test(args: list[str]):
     word.write_end("t")
     word.replace_text("::test::", "")
+
+def show_help(args: list[str]):
+    word.write_end("\r\n" + HELP_TEXT)
 
 def stop_program(args: list[str]):
     global stop
@@ -50,11 +61,14 @@ def switch_llm(args: list[str]):
 
 commands = {
     "stop": stop_program,
+    "quit": stop_program,
+    "exit": stop_program,
     "new": reset,
     "reset": reset,
     "fallback": fallback,
     "switch": switch_llm,
-    "test": test
+    "test": test,
+    "help": show_help
 }
 
 
@@ -82,6 +96,28 @@ def stop_mouse_movement(thread, stop_event):
         stop_event.set()
         thread.join()
 
+# Answers that have arrived but have no ,,slot,, to go into yet. Each ,,,, (or
+# ,,text,,) in the document takes the oldest answer; the rest wait here.
+answer_queue = deque()
+
+
+def _defuse_slots(text: str) -> str:
+    """Stop ',,' inside an answer from being mistaken for a slot later."""
+    return re.sub(r",(?=,)", ", ", text)
+
+
+def fill_slots(word: wordwrapper.WordWrapper):
+    """Fill as many ,,slots,, as there are queued answers (oldest first)."""
+    while answer_queue:
+        # Only dequeue once the answer is really in the document, so an
+        # error (e.g. Word closing mid-way) doesn't lose it.
+        if not word.replace_block(",,", ",,", _defuse_slots(answer_queue[0])):
+            break
+        answer_queue.popleft()
+    if answer_queue:
+        print(f"{len(answer_queue)} answer(s) waiting for a ,,,, slot")
+
+
 def find_prompt_replace(word: wordwrapper.WordWrapper):
     word.make_hidden_visible()
     
@@ -93,7 +129,7 @@ def find_prompt_replace(word: wordwrapper.WordWrapper):
         if r is None:
             return
         word.replace_blocks(f"---", "---", "") #Delete judge prompt from document
-        word.replace_block(",,", ",,", r)
+        answer_queue.append(r)
         return
     
     # Check for regular prompt (--)
@@ -105,7 +141,7 @@ def find_prompt_replace(word: wordwrapper.WordWrapper):
     if r is None:
         return
     word.replace_blocks(f"--", "--", "") #Delete prompt from document
-    word.replace_block(",,", ",,", r)
+    answer_queue.append(r)
 
 def handle_deactivated(word: wordwrapper.WordWrapper):
     global word_is_open
@@ -132,6 +168,7 @@ def handle_deactivated(word: wordwrapper.WordWrapper):
 
             commands[command]([word.get_block(",,", ",,")])
             word.replace_blocks("::", "::", "")
+        fill_slots(word)  # also runs when only a ,,,, was typed since last time
         stop_mouse_movement(mt, se)
         print("Flashing taskbar")
         notifier.notify()

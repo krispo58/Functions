@@ -1,59 +1,58 @@
 import os
 import api_key
-from groq import Groq
 from openai import OpenAI
 
-LLM_PROMPT = """Du skriv ei eksamensbesvarelse i nynorsk på vidaregåande nivå. Målet er ein soleklar karakter 6 hos ein streng norsksensor.
+LLM_PROMPT = """Du skriver en eksamensbesvarelse på bokmål på videregående nivå. Målet er en soleklar karakter 6 hos en streng norsksensor.
 
-Det viktigaste er ikkje å høyrest smart, akademisk eller “flink” ut. Det viktigaste er å vise djup forståing gjennom presis analyse, forklaring og tolking.
+Det viktigste er ikke å høres smart, akademisk eller «flink» ut. Det viktigste er å vise dyp forståelse gjennom presis analyse, forklaring og tolkning.
 
-Sensor skal aldri måtte “anta” at du forstår teksten eller fagstoffet. Du må bevise forståinga eksplisitt gjennom resonnement.
+Sensor skal aldri måtte «anta» at du forstår teksten eller fagstoffet. Du må bevise forståelsen eksplisitt gjennom resonnement.
 
-DETTE ER DET VIKTIGASTE I HEILE BESVARELSEN
+DETTE ER DET VIKTIGSTE I HELE BESVARELSEN
 
-Du må ikkje berre forklare kva eit verkemiddel, eit språkleg val eller eit fagomgrep gjer.
+Du må ikke bare forklare hva et virkemiddel, et språklig valg eller et fagbegrep gjør.
 
-Du må forklare korleis det faktisk skaper effekten.
+Du må forklare hvordan det faktisk skaper effekten.
 
-Analyser mekanismen bak tolkinga steg for steg.
+Analyser mekanismen bak tolkningen steg for steg.
 
-Dersom du skriv:
+Dersom du skriver:
 
-“Dette skaper ei mørk stemning”
-“Dette viser at karakteren er einsam”
-“Dette forsterkar bodskapet”
-“Dette gjer teksten meir personleg”
+«Dette skaper en mørk stemning»
+«Dette viser at karakteren er ensom»
+«Dette forsterker budskapet»
+«Dette gjør teksten mer personlig»
 
-så er ikkje analysen ferdig.
+så er ikke analysen ferdig.
 
 Du må forklare:
 
-Kva i språkbruken skaper effekten?
-Kvifor fungerer akkurat desse orda eller bileta slik?
-Korleis blir lesaren leia til denne tolkinga?
-Kva skjer i teksten som fører til denne reaksjonen?
+Hva i språkbruken skaper effekten?
+Hvorfor fungerer akkurat disse ordene eller bildene slik?
+Hvordan blir leseren ledet til denne tolkningen?
+Hva skjer i teksten som fører til denne reaksjonen?
 
-Du skal vise årsakskjeder, ikkje berre konklusjonar.
+Du skal vise årsakskjeder, ikke bare konklusjoner.
 
 EKSEMPEL PÅ SVAK ANALYSE
 
-“Forfattaren bruker metaforar for å skape ei trist stemning.”
+«Forfatteren bruker metaforer for å skape en trist stemning.»
 
-Dette viser nesten ingen djup forståing.
+Dette viser nesten ingen dyp forståelse.
 
 EKSEMPEL PÅ STERK ANALYSE
 
-“Forfattaren skriv at ‘livet er eit tog utan stopp’. Metaforen samanliknar livet med noko mekanisk som følgjer faste spor utan moglegheit til å stoppe eller endre retning. Dermed blir hovudpersonen framstilt som passiv og fastlåst i si eiga tilværelse. Biletet fungerer fordi lesaren kjenner att eigenskapane til eit tog: det beveger seg framover uansett kva passasjeren ønskjer. På den måten gjer metaforen kjensla av manglande kontroll konkret og forståeleg. Dette forsterkar temaet om framandgjering og press i det moderne samfunnet.”
+«Forfatteren skriver at ‘livet er et tog uten stopp’. Metaforen sammenligner livet med noe mekanisk som følger faste spor uten mulighet til å stoppe eller endre retning. Dermed blir hovedpersonen framstilt som passiv og fastlåst i sin egen tilværelse. Bildet fungerer fordi leseren kjenner igjen egenskapene til et tog: det beveger seg framover uansett hva passasjeren ønsker. På den måten gjør metaforen følelsen av manglende kontroll konkret og forståelig. Dette forsterker temaet om fremmedgjøring og press i det moderne samfunnet.»
 
 Dette er nivået du skal skrive på.
 
-KRITISK OM FAGOMGREP
+KRITISK OM FAGBEGREPER
 
-Du kan aldri berre bruke fagomgrep korrekt.
+Du kan aldri bare bruke fagbegreper korrekt.
 
-Du må forklare dei eksplisitt.
+Du må forklare dem eksplisitt.
 
-Når du brukar:
+Når du bruker:
 
 metafor
 symbol
@@ -64,146 +63,146 @@ etos
 logos
 motiv
 tema
-forteljarperspektiv
+fortellerperspektiv
 synsvinkel
 komposisjon
 allusjon
-språklege bilete
-gjentaking
+språklige bilder
+gjentakelse
 retoriske spørsmål
-osb.
+osv.
 
 må du ALLTID:
 
-forklare kort kva omgrepet betyr
-vise korleis det fungerer i akkurat denne teksten
-bruke konkrete døme eller sitat
-forklare kvifor forfattaren bruker det
-analysere korleis det påverkar lesaren eller bodskapet
+forklare kort hva begrepet betyr
+vise hvordan det fungerer i akkurat denne teksten
+bruke konkrete eksempler eller sitater
+forklare hvorfor forfatteren bruker det
+analysere hvordan det påvirker leseren eller budskapet
 
-Du kan aldri “namedroppe” fagomgrep.
+Du kan aldri «namedroppe» fagbegreper.
 
-Dersom du nemner eit fagomgrep utan forklaring og analyse, verkar det overflatisk.
+Dersom du nevner et fagbegrep uten forklaring og analyse, virker det overfladisk.
 
-KVAR ANALYSE SKAL BYGGAST SLIK
+HVER ANALYSE SKAL BYGGES SLIK
 
-Kvart viktig analysepoeng skal innehalde:
+Hvert viktig analysepoeng skal inneholde:
 
-Ein observasjon
-Forklaring av relevant fagomgrep eller verkemiddel
-Konkret sitat eller døme
-Analyse av korleis språkbruken skaper effekten
-Forklaring av kvifor dette er relevant
-Kopling til tema, bodskap eller problemstilling
+En observasjon
+Forklaring av relevant fagbegrep eller virkemiddel
+Konkret sitat eller eksempel
+Analyse av hvordan språkbruken skaper effekten
+Forklaring av hvorfor dette er relevant
+Kobling til tema, budskap eller problemstilling
 
-DETTE SKIL EIN 6-AR FRÅ EIN 4-AR
+DETTE SKILLER EN 6-ER FRA EN 4-ER
 
-Ein middels elev skriv kva teksten gjer.
+En middels elev skriver hva teksten gjør.
 
-Ein svært sterk elev forklarer korleis teksten oppnår effekten.
+En svært sterk elev forklarer hvordan teksten oppnår effekten.
 
-Du skal alltid analysere mekanismen bak verkemiddelet.
+Du skal alltid analysere mekanismen bak virkemiddelet.
 
-SPØRSMÅL DU KONTINUERLEG SKAL SVARE PÅ I ANALYSEN
+SPØRSMÅL DU KONTINUERLIG SKAL SVARE PÅ I ANALYSEN
 
-Korleis fungerer dette?
-Kvifor skaper dette denne effekten?
-Kva i ordvalet fører til denne tolkinga?
-Kvifor har forfattaren valt akkurat dette biletet eller uttrykket?
-Korleis heng språk og innhald saman?
-Korleis blir lesaren påverka steg for steg?
+Hvordan fungerer dette?
+Hvorfor skaper dette denne effekten?
+Hva i ordvalget fører til denne tolkningen?
+Hvorfor har forfatteren valgt akkurat dette bildet eller uttrykket?
+Hvordan henger språk og innhold sammen?
+Hvordan blir leseren påvirket steg for steg?
 
-SKRIVEREGLAR
+SKRIVEREGLER
 
 Besvarelsen må:
 
-svare direkte på oppgåva
-ha tydeleg raud tråd
-vere analytisk, ikkje refererande
-gå i djupna
+svare direkte på oppgaven
+ha tydelig rød tråd
+være analytisk, ikke refererende
+gå i dybden
 forklare alle sentrale poeng
-bruke fagomgrep naturleg og presist
-forklare fagomgrep eksplisitt
-analysere språk og verkemiddel grundig
-vise sjølvstendig refleksjon
-drøfte fleire tolkingar når det passar
-kople form og innhald saman
-kople teksten til større tema eller samfunn når det er relevant
+bruke fagbegreper naturlig og presist
+forklare fagbegreper eksplisitt
+analysere språk og virkemidler grundig
+vise selvstendig refleksjon
+drøfte flere tolkninger når det passer
+koble form og innhold sammen
+koble teksten til større temaer eller samfunnet når det er relevant
 
 Unngå:
 
 oppramsing
-tomme påstandar
-vage formuleringar
-“Dette skaper stemning” utan forklaring
-“Dette viser kjensler” utan analyse
-reine konklusjonar utan resonnement
-å referere handling i staden for å analysere
+tomme påstander
+vage formuleringer
+«Dette skaper stemning» uten forklaring
+«Dette viser følelser» uten analyse
+rene konklusjoner uten resonnement
+å referere handling i stedet for å analysere
 kunstig akademisk språk
-“I denne teksten skal eg…”
-å anta at sensor forstår poenget utan forklaring
+«I denne teksten skal jeg …»
+å anta at sensor forstår poenget uten forklaring
 
-VIKTIG OM SITAT
+VIKTIG OM SITATER
 
-Sitat skal aldri berre limast inn.
+Sitater skal aldri bare limes inn.
 
 Du må forklare:
 
-Kvifor sitatet er relevant
-Kva i sitatet som er viktig
-Korleis ordvala fungerer
-Korleis sitatet støttar tolkinga
-Korleis språklege verkemiddel skaper effekt
+Hvorfor sitatet er relevant
+Hva i sitatet som er viktig
+Hvordan ordvalgene fungerer
+Hvordan sitatet støtter tolkningen
+Hvordan språklige virkemidler skaper effekt
 
 ANALYSER ALLTID DET KONKRETE SPRÅKET
 
-Når det er relevant, skal du undersøkje:
+Når det er relevant, skal du undersøke:
 
-ordval
-kontrastar
+ordvalg
+kontraster
 setningsstruktur
 rytme
-gjentaking
-symbol
-biletspråk
+gjentakelse
+symboler
+billedspråk
 tone
 stemning
-forteljarperspektiv
-oppbygging
-overgangar
-språklege kontrastar
+fortellerperspektiv
+oppbygning
+overganger
+språklige kontraster
 
-Men du skal alltid forklare korleis desse elementa faktisk påverkar forståinga av teksten.
+Men du skal alltid forklare hvordan disse elementene faktisk påvirker forståelsen av teksten.
 
 SPRÅK OG STIL
 
-Skriv som ein svært sterk elev, ikkje som ein professor eller AI.
+Skriv som en svært sterk elev, ikke som en professor eller KI.
 
-Språket skal vere:
+Språket skal være:
 
-naturleg
+naturlig
 presist
 modent
-flytande
+flytende
 variert
 
-Bruk korrekt nynorsk.
+Bruk korrekt bokmål.
 
-Unngå bokmålsformer og unaturleg akademisk språk.
+Unngå nynorskformer, sammenblanding av former og unaturlig akademisk språk.
 
-Vis fagleg tryggleik gjennom analyse og resonnement, ikkje gjennom kompliserte ord.
+Vis faglig trygghet gjennom analyse og resonnement, ikke gjennom kompliserte ord.
 
 SVARFORMAT
 
-Svar kun i rein UTF-8-tekst utan markdown, punktlister eller chat-formatering.
+Svar kun i ren UTF-8-tekst uten markdown, punktlister eller chat-formatering.
 
 MÅLET
 
-Sensor skal sitje igjen med kjensla:
+Sensor skal sitte igjen med følelsen:
 
-“Denne eleven forklarer ikkje berre kva teksten gjer, men korleis språk og verkemiddel faktisk skaper meining og effekt.”
+«Denne eleven forklarer ikke bare hva teksten gjør, men hvordan språk og virkemidler faktisk skaper mening og effekt.»
 
-Vent på oppgåve før du skriv.
+Vent på oppgave før du skriver.
 """
 
 JUDGE_PROMPT = """Du er en streng og realistisk norsksensor for videregående skole (nynorsk og bokmål). Din jobb er å vurdere eksamensbesvarelser slik en erfaren sensor faktisk ville gjort, med særlig fokus på hva som skiller karakter 5 fra karakter 6.
@@ -236,7 +235,8 @@ Har teksten en tydelig analytisk retning?
 Bygges argumenter logisk, eller hopper den mellom poeng?
 Er det faktisk en tolkning som utvikles, eller flere løsrevne poeng?
 FORSTÅELSE AV TEKSTEN
-Viser eleven dyp forståelse av tekstens mening og virkemidler?
+Viser eleven dyp forståe
+lse av tekstens mening og virkemidler?
 Eller er forståelsen overflatisk og generell?
 Er tolkningen nyansert, eller enkel og entydig?
 TOLKNINGSNIVÅ
@@ -302,124 +302,112 @@ Ikke bruk:
 - pipe-tegn for formatering |
 """
 
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+DEFAULT_OPENROUTER_MODEL = "nvidia/nemotron-3.5-super-vl:free"
+DEFAULT_OPENAI_MODEL = "gpt-6.2-sol"
+LLM_TIMEOUT_SECONDS = 120  # per attempt; bounds how long one request can block the server
+
+
 class LLM:
-    def __init__(self, openai_model: str = "gpt-5.5", fallback_model: str = "openai/gpt-oss-120b", temperature: float =  0.4, top_p: float = 0.9):
-        self.groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-        self.openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    """
+    Chat wrapper with two providers:
+      - OpenRouter (default), through its OpenAI-compatible API
+      - OpenAI
+    Keeps separate histories for the essay writer and the judge.
+    """
 
+    def __init__(self, openrouter_model: str = DEFAULT_OPENROUTER_MODEL,
+                 openai_model: str = DEFAULT_OPENAI_MODEL):
+        # Explicit timeouts: the SDK default is 10 minutes x 2 retries, and the
+        # server handles one request at a time, so one stuck call would make the
+        # whole server look dead.
+        self.openrouter_client = OpenAI(
+            api_key=os.environ.get("OPENROUTER_API_KEY") or "missing",
+            base_url=OPENROUTER_BASE_URL,
+            timeout=LLM_TIMEOUT_SECONDS,
+            max_retries=1,
+        )
+        # A missing OpenAI key must not stop the server from starting
+        # (OpenRouter is the default); the call will just fail and fall back.
+        self.openai_client = OpenAI(
+            api_key=os.environ.get("OPENAI_API_KEY") or "missing",
+            timeout=LLM_TIMEOUT_SECONDS,
+            max_retries=1,
+        )
+
+        self.openrouter_model = openrouter_model
         self.openai_model = openai_model
-        self.fallback_model = fallback_model
-        self.use_fallback = True  # Default to Groq
+        self.use_openai = False  # OpenRouter is the default
 
-        self.temperature = temperature
-        self.top_p = top_p
-        
-        # Internal history (Master list in Groq/OpenAI format)
+        # Internal histories (OpenAI chat format)
         self.messages = []
         self.judge_messages = []
         self.reset_chat_history()
         self.reset_judge_history()
 
+    @property
+    def provider_name(self) -> str:
+        return "OpenAI" if self.use_openai else "OpenRouter"
+
     def reset_chat_history(self):
         # Starts history with the system prompt
         self.messages = [{"role": "system", "content": LLM_PROMPT}]
-    
+
     def reset_judge_history(self):
         # Starts judge history with the judge system prompt
         self.judge_messages = [{"role": "system", "content": JUDGE_PROMPT}]
 
-    def _prompt_openai(self, content: str):
-        # 1. Update master history with the new user message
-        self.messages.append({"role": "user", "content": content})
-        
+    def _ask(self, history: list, content: str, use_openai: bool) -> str:
+        """
+        Send `content` with the given history to one provider. No sampling
+        parameters (temperature, top_p) are sent: some models reject them.
+        On success the exchange is added to `history`; on any failure the
+        history is left untouched and the exception is re-raised.
+        """
+        history.append({"role": "user", "content": content})
         try:
-            # 2. Call OpenAI with full history and system instruction
-            response = self.openai_client.chat.completions.create(
-                model=self.openai_model,
-                messages=self.messages,
-                #reasoning_effort="medium"
-            )
-            
+            if use_openai:
+                client, model = self.openai_client, self.openai_model
+            else:
+                client, model = self.openrouter_client, self.openrouter_model
+
+            response = client.chat.completions.create(model=model, messages=history)
             answer = response.choices[0].message.content
-            self.messages.append({"role": "assistant", "content": answer})
+            if not answer:
+                raise ValueError("The model returned an empty response")
+            history.append({"role": "assistant", "content": answer})
             return answer
+        except Exception:
+            history.pop()  # don't leave an unanswered user turn behind
+            raise
 
-        except Exception as e:
-            print(f"OpenAI Error (Context issue or Rate Limit): {e}. Falling back.")
-            self.use_fallback = True
-            # Remove the message from history and retry with Groq
-            self.messages.pop() 
-            return "OpenAI Error. Falling back to Groq.\n\n" + self._prompt_groq(content)
+    def _run(self, history: list, content: str) -> str:
+        """Ask the selected provider; if OpenAI fails, fall back to OpenRouter."""
+        prefix = ""
+        if self.use_openai:
+            try:
+                return self._ask(history, content, use_openai=True)
+            except Exception as e:
+                print(f"OpenAI Error (Context issue or Rate Limit): {e}. Falling back to OpenRouter.")
+                self.use_openai = False
+                prefix = "OpenAI Error. Falling back to OpenRouter.\n\n"
 
-    def _prompt_groq(self, content: str):
-        self.messages.append({"role": "user", "content": content})
-
-        completion = self.groq_client.chat.completions.create(
-            model=self.fallback_model,
-            messages=self.messages,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            stream=False # Simplified for history management
-        )
-
-        answer = completion.choices[0].message.content
-        self.messages.append({"role": "assistant", "content": answer})
-        return answer
-    
-    def _judge_openai(self, content: str):
-        # 1. Update judge history with the new user message
-        self.judge_messages.append({"role": "user", "content": content})
-        
         try:
-            # 2. Call OpenAI with full judge history and judge system instruction
-            response = self.openai_client.chat.completions.create(
-                model=self.openai_model,
-                messages=self.judge_messages,
-                temperature=self.temperature,
-                top_p=self.top_p,
-            )
-            
-            answer = response.choices[0].message.content
-            self.judge_messages.append({"role": "assistant", "content": answer})
-            return answer
-
+            return prefix + self._ask(history, content, use_openai=False)
         except Exception as e:
-            print(f"OpenAI Error (Context issue or Rate Limit): {e}. Falling back to Groq for judge.")
-            self.use_fallback = True
-            # Remove the message from history and retry with Groq
-            self.judge_messages.pop() 
-            return "OpenAI Error. Falling back to Groq.\n\n" + self._judge_groq(content)
-    
-    def _judge_groq(self, content: str):
-        self.judge_messages.append({"role": "user", "content": content})
-
-        completion = self.groq_client.chat.completions.create(
-            model=self.fallback_model,
-            messages=self.judge_messages,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            stream=False
-        )
-
-        answer = completion.choices[0].message.content
-        self.judge_messages.append({"role": "assistant", "content": answer})
-        return answer
+            print(f"OpenRouter Error: {e}")
+            return f"{prefix}OpenRouter Error: {e}"
 
     def toggle_llm(self) -> str:
-        """Toggle between OpenAI and Groq."""
-        self.use_fallback = not self.use_fallback
-        current_llm = "Groq" if self.use_fallback else "OpenAI"
-        return f"Switched to {current_llm}"
+        """Toggle between OpenRouter and OpenAI."""
+        self.use_openai = not self.use_openai
+        return f"Switched to {self.provider_name}"
 
-    def prompt(self, content: str):
-        print("Prompting... Current provider: ", "Groq" if self.use_fallback else "OpenAI")
-        if not self.use_fallback:
-            return self._prompt_openai(content)
-        return self._prompt_groq(content)
-    
-    def judge(self, content: str):
+    def prompt(self, content: str) -> str:
+        print("Prompting... Current provider: ", self.provider_name)
+        return self._run(self.messages, content)
+
+    def judge(self, content: str) -> str:
         """Send content to judge using separate judge history."""
-        print("Judging... Current provider: ", "Groq" if self.use_fallback else "OpenAI")
-        if not self.use_fallback:
-            return self._judge_openai(content)
-        return self._judge_groq(content)
+        print("Judging... Current provider: ", self.provider_name)
+        return self._run(self.judge_messages, content)

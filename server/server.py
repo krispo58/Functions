@@ -45,9 +45,9 @@ class Server:
     
     def _handle_request(self, msg: dict):
         """Handle incoming request message."""
-        sender = msg['sender']
-        data = msg['data']
-        
+        sender = msg.get('sender', 'unknown')
+        data = msg.get('data') or {}
+
         if self.debug:
             print(f"Received data from {sender[:8]}: {data}")
         
@@ -90,6 +90,8 @@ class Server:
         """Process PROMPT command."""
         if self.debug:
             print("Processing PROMPT command... arguments:", args)
+        if not args or not args[0]:
+            raise ValueError("PROMPT command requires a non-empty prompt argument")
         prompt_content = args[0]
         response = self.llm.prompt(prompt_content)
         if self.debug:
@@ -99,23 +101,25 @@ class Server:
     def _ack(self, args: list) -> str:
         """Process ACK command."""
         self._new([])  # Reset chat history on ACK to ensure clean state
-        self.llm.use_fallback = True  # Reset to Groq on reconnect
         return "ACK"
     
     def _new(self, args: list) -> str:
         """Process NEW command."""
         self.llm.reset_chat_history()
-        self.llm.use_fallback = True  # Reset to Groq
+        self.llm.reset_judge_history()
+        self.llm.use_openai = False  # Reset to OpenRouter (the default)
         return "success"
     
     def _switch(self, args: list) -> str:
-        """Process SWITCH command to toggle between OpenAI and Groq."""
+        """Process SWITCH command to toggle between OpenRouter and OpenAI."""
         return self.llm.toggle_llm()
     
     def _judge_handler(self, args: list) -> str:
         """Process JUDGE command."""
         if self.debug:
             print("Processing JUDGE command... arguments:", args)
+        if not args or not args[0]:
+            raise ValueError("JUDGE command requires a non-empty prompt argument")
         prompt_content = args[0]
         response = self.llm.judge(prompt_content)
         if self.debug:
@@ -136,6 +140,12 @@ class Server:
         try:
             while True:
                 time.sleep(1)
+                # Safety net: the main thread must never sit idle while the
+                # listener is dead, otherwise the process looks alive but is deaf.
+                if not self.tunnel.is_listening():
+                    print("[SERVER] Listener thread is not running; restarting it")
+                    self.tunnel._listener_running = False
+                    self.tunnel.start_listening('server-channel', poll_interval=0.5)
         except KeyboardInterrupt:
             print("\n[SERVER] Shutting down...")
             self.tunnel.stop_listening()

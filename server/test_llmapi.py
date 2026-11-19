@@ -2,6 +2,8 @@ import llmapi
 
 llm = llmapi.LLM()
 
+print("OpenRouter Response:", llm.prompt("What is the capital of France?"))
 
-response = llm._prompt_openai("What is the capital of France?")
-print("OpenAI Response:", response)
+llm.reset_chat_history()
+llm.toggle_llm()  # switch to OpenAI
+print("OpenAI Response:", llm.prompt("What is the capital of France?"))

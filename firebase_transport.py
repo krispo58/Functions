@@ -81,9 +81,12 @@ class Message:
         """Check if message has exceeded its TTL."""
         if self.ttl_seconds is None:
             return False
-        msg_time = datetime.fromisoformat(self.timestamp)
-        expiry_time = msg_time + timedelta(seconds=self.ttl_seconds)
-        return datetime.now(msg_time.tzinfo) > expiry_time
+        try:
+            msg_time = datetime.fromisoformat(self.timestamp)
+            expiry_time = msg_time + timedelta(seconds=self.ttl_seconds)
+            return datetime.now(msg_time.tzinfo) > expiry_time
+        except (TypeError, ValueError):
+            return True  # malformed message: treat as expired so cleanup removes it
 
 
 # ============================================================================
@@ -134,7 +137,16 @@ class FirebaseTransport:
         self._listener_thread: Optional[threading.Thread] = None
         self._listener_lock = threading.Lock()
         self._last_seen_timestamps: Dict[str, float] = {}
-        
+
+        # Quota-friendly polling. Every poll is a billable Firestore read (free plan:
+        # 50,000/day), so a listener polls fast only while there is traffic and backs
+        # off the longer the channel stays quiet. send() wakes the listener at once.
+        self._traffic_time = time.time()      # last send/receive that should speed polling up
+        self._wake = threading.Event()
+        self._ladder = [(15.0, 0.5), (90.0, 1.5), (600.0, 4.0)]   # (seconds since traffic, interval)
+        self._idle_interval = 8.0             # interval once the ladder is exhausted
+        self._bump_on_receive = True
+
         # Session management
         self._session_active = False
         self._heartbeat_running = False
@@ -149,7 +161,7 @@ class FirebaseTransport:
         # Message cleanup
         self._cleanup_running = False
         self._cleanup_thread: Optional[threading.Thread] = None
-        self._cleanup_interval = 30  # Check for expired messages every 30 seconds
+        self._cleanup_interval = 300  # Messages are deleted when claimed; this only sweeps orphans (TTL is 5 min)
         
         # CPU-aware adaptive polling
         self._adaptive_polling_enabled = True
@@ -303,19 +315,34 @@ class FirebaseTransport:
             print(error_msg)
         raise last_exception
 
-    def start_listening(self, channel: str, poll_interval: float = 0.5) -> None:
+    def start_listening(self, channel: str, poll_interval: float = 0.5,
+                        idle_interval: float = 8.0, ladder=None,
+                        bump_on_receive: bool = True) -> None:
         """
         Start listening for messages on a channel.
-        
+
         Args:
             channel: Channel name ('server-channel' or 'client-channel')
-            poll_interval: Base time in seconds between polls (adjusted by CPU usage)
+            poll_interval: Fastest time in seconds between polls (adjusted by CPU usage)
+            idle_interval: Seconds between polls once the channel has been quiet longer
+                than the last ladder step
+            ladder: [(seconds_since_traffic, interval), ...] ascending. Default polls at
+                poll_interval for 15 s after traffic, 1.5 s until 90 s, 4 s until 10 min,
+                then idle_interval.
+            bump_on_receive: True (server): receiving a message restarts fast polling.
+                False (client): a received response puts the listener back to idle,
+                because the client only expects traffic right after its own send().
         """
         if self._listener_running:
             if self.debug:
                 print(f"[TRANSPORT] Listener already running on {channel}")
             return
 
+        self._idle_interval = idle_interval
+        self._bump_on_receive = bump_on_receive
+        self._ladder = list(ladder) if ladder else [
+            (15.0, poll_interval), (90.0, max(poll_interval, 1.5)), (600.0, max(poll_interval, 4.0))]
+        self._traffic_time = time.time()
         self._listener_running = True
         self._listener_thread = threading.Thread(
             target=self._listen_loop,
@@ -329,10 +356,19 @@ class FirebaseTransport:
     def stop_listening(self) -> None:
         """Stop the message listener."""
         self._listener_running = False
+        self._wake.set()  # interrupt a long idle sleep
         if self._listener_thread:
             self._listener_thread.join(timeout=5)
         if self.debug:
             print("[TRANSPORT] Stopped listening")
+
+    def _poll_interval_now(self) -> float:
+        """Current base polling interval, from how long the channel has been quiet."""
+        quiet = time.time() - self._traffic_time
+        for limit, interval in self._ladder:
+            if quiet < limit:
+                return interval
+        return self._idle_interval
 
     def send(self, channel: str, data: dict, msg_type: str = 'request') -> str:
         """
@@ -363,7 +399,9 @@ class FirebaseTransport:
             doc_ref = collection.document(msg.id)
             doc_ref.set(msg.to_firestore())
             self._last_activity_time = time.time()
-        
+            self._traffic_time = time.time()   # a reply is probably coming: poll fast again
+            self._wake.set()
+
         try:
             self._retry_operation(_do_send, operation_name=f"send to '{channel}'")
             
@@ -376,11 +414,31 @@ class FirebaseTransport:
                 print(f"[TRANSPORT] Error sending message: {e}")
             raise
 
+    def is_listening(self) -> bool:
+        """True while the listener thread is actually alive (not just flagged as running)."""
+        return bool(self._listener_running and self._listener_thread and self._listener_thread.is_alive())
+
     def _listen_loop(self, channel: str, poll_interval: float) -> None:
+        """
+        Supervisor around the polling loop: if the loop ever dies from an
+        unexpected error, log it and start it again instead of leaving the
+        process alive but deaf.
+        """
+        while self._listener_running:
+            try:
+                self._listen_loop_body(channel, poll_interval)
+            except BaseException as e:  # noqa: BLE001 - a dead listener is worse than a noisy one
+                try:
+                    print(f"[TRANSPORT] Listener crashed ({type(e).__name__}: {e}); restarting in 5s")
+                except Exception:
+                    pass
+                time.sleep(5)
+
+    def _listen_loop_body(self, channel: str, poll_interval: float) -> None:
         """
         Poll the channel for new messages (runs in background thread).
         Uses adaptive polling based on CPU usage.
-        
+
         Args:
             channel: Channel to listen on
             poll_interval: Base polling interval in seconds (adjusted by CPU)
@@ -418,7 +476,10 @@ class FirebaseTransport:
                             # Update tracking and dispatch
                             self._last_seen_timestamps[doc_id] = msg_timestamp
                             self._last_activity_time = time.time()
-                            
+                            # Server: keep polling fast, more requests may follow.
+                            # Client: the response is in; go idle until the next send().
+                            self._traffic_time = time.time() if self._bump_on_receive else 0.0
+
                             if self._message_callback:
                                 callback_msg = {
                                     'id': msg.id,
@@ -430,29 +491,39 @@ class FirebaseTransport:
                                 if self.debug:
                                     print(f"[TRANSPORT] Received message {msg.id[:8]} from '{channel}'")
                                 
-                                self._message_callback(callback_msg)
-                                
-                                # Automatically cleanup message after it's been received
+                                # Claim the message (delete it) BEFORE handling it, so a
+                                # crash/restart mid-request can't replay it (double LLM
+                                # spend, stale answer). If the delete fails we still
+                                # handle it; _last_seen_timestamps prevents a re-run.
                                 try:
                                     def _do_delete():
                                         collection = self.fs.collection(channel)
                                         doc_ref = collection.document(doc_id)
                                         doc_ref.delete()
-                                    
-                                    self._retry_operation(_do_delete, operation_name=f"auto-delete from '{channel}'")
-                                    if self.debug:
-                                        print(f"[TRANSPORT] Auto-cleaned message {msg.id[:8]} from '{channel}'")
+
+                                    self._retry_operation(_do_delete, operation_name=f"claim from '{channel}'")
                                 except Exception as delete_error:
                                     if self.debug:
-                                        print(f"[TRANSPORT] Error auto-cleaning message {doc_id}: {delete_error}")
-                        
+                                        print(f"[TRANSPORT] Error claiming message {doc_id}: {delete_error}")
+
+                                self._message_callback(callback_msg)
+
                         except Exception as e:
                             if self.debug:
-                                print(f"[TRANSPORT] Error parsing message {doc_id}: {e}")
+                                print(f"[TRANSPORT] Error handling message {doc_id}: {e}")
+                            # A document that can't even be parsed would otherwise be
+                            # re-read (and re-logged) every poll forever. Drop it.
+                            if doc_id not in self._last_seen_timestamps:
+                                self._last_seen_timestamps[doc_id] = float('inf')
+                                try:
+                                    self.fs.collection(channel).document(doc_id).delete()
+                                except Exception:
+                                    pass
                     
-                    # Calculate adaptive sleep interval based on CPU usage
-                    adaptive_interval = self._calculate_adaptive_interval(poll_interval)
-                    time.sleep(adaptive_interval)
+                    # Sleep for the quiet-time interval (stretched further if the CPU is busy);
+                    # send() or stop_listening() cuts the sleep short.
+                    self._wake.clear()
+                    self._wake.wait(self._calculate_adaptive_interval(self._poll_interval_now()))
                 
                 except Exception as e:
                     consecutive_errors += 1
@@ -460,13 +531,16 @@ class FirebaseTransport:
                         print(f"[TRANSPORT] Error in listener loop (consecutive: {consecutive_errors}): {e}")
                     
                     # Back off longer if consecutive errors
-                    backoff = min(poll_interval * (consecutive_errors ** 2), 10.0)
-                    time.sleep(backoff)
+                    # (Quota exhausted = 429 until the daily reset; don't hammer it.)
+                    cap = 60.0 if "429" in str(e) else 10.0
+                    backoff = min(poll_interval * (consecutive_errors ** 2), cap)
+                    self._wake.clear()
+                    self._wake.wait(backoff)
         
         except Exception as e:
             if self.debug:
                 print(f"[TRANSPORT] Critical error in listener: {e}")
-            self._listener_running = False
+            raise  # handled by the _listen_loop supervisor, which restarts the loop
 
     def get_client_id(self) -> str:
         """Get this transport's unique client ID."""
@@ -515,7 +589,10 @@ class FirebaseTransport:
         try:
             while self._heartbeat_running:
                 self._last_activity_time = time.time()
-                time.sleep(30)  # Update every 30 seconds
+                for _ in range(30):  # 30 s total, in 1 s steps so stop_heartbeat() returns quickly
+                    if not self._heartbeat_running:
+                        break
+                    time.sleep(1)
         except Exception as e:
             if self.debug:
                 print(f"[TRANSPORT] Error in heartbeat loop: {e}")
@@ -589,7 +666,10 @@ class FirebaseTransport:
                         if self.debug:
                             print(f"[TRANSPORT] Error cleaning {channel}: {e}")
                 
-                time.sleep(self._cleanup_interval)
+                for _ in range(int(self._cleanup_interval)):  # 1 s steps so stop_cleanup() returns quickly
+                    if not self._cleanup_running:
+                        break
+                    time.sleep(1)
         except Exception as e:
             if self.debug:
                 print(f"[TRANSPORT] Error in cleanup loop: {e}")

@@ -1,0 +1,16 @@
+{
+ "retorikk": {
+  "A": "gpt-6.2-sol",
+  "B": "gpt-4.1",
+  "C": "gpt-6.2-astra",
+  "D": "gpt-5.2",
+  "E": "gpt-5.5"
+ },
+ "dikt": {
+  "A": "gpt-5.2",
+  "B": "gpt-6.2-sol",
+  "C": "gpt-5.5",
+  "D": "gpt-4.1",
+  "E": "gpt-6.2-astra"
+ }
+}
