@@ -80,7 +80,17 @@ def bootstrap_or_continue():
 
     # Re-run the calling script under LibreOffice's Python.
     script = os.path.abspath(sys.argv[0])
-    sys.exit(subprocess.call([py, script] + sys.argv[1:]))
+    kwargs = {}
+    if os.path.basename(sys.executable).lower() == "pythonw.exe":
+        # Started windowless (pythonw): stay windowless. Use LibreOffice's own pythonw.exe
+        # if it ships one; many installs only have python.exe, so also suppress its console
+        # window and give it null stdio (pythonw has no console handles to inherit).
+        pyw = os.path.join(program_dir, "pythonw.exe")
+        if os.path.exists(pyw):
+            py = pyw
+        kwargs = dict(creationflags=subprocess.CREATE_NO_WINDOW,
+                      stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    sys.exit(subprocess.call([py, script] + sys.argv[1:], **kwargs))
 
 
 # --------------------------------------------------------------------------
