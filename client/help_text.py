@@ -12,7 +12,7 @@ HELP_TEXT = (
     "Commands are typed with two colons on each side of the name, and they run when you switch away "
     "from the window. Stop (also quit or exit) closes the program. New (also reset) starts a fresh "
     "conversation: it forgets the chat, the judge's chat and any answers still waiting, and goes back "
-    "to the OpenRouter model. Switch (also fallback) changes between OpenRouter and OpenAI and keeps "
+    "to the OpenAI model. Switch (also fallback) changes between OpenAI and OpenRouter and keeps "
     "the conversation. Test adds the letter t at the end of the document to show the program is alive. "
     "Backupserver switches between the main server and the backup server (starting a fresh conversation "
     "on it) and writes which one is now in use; if that server isn't running, nothing changes. "

@@ -64,7 +64,7 @@ try {
     & $nssm install $Name $python "run_server.py" | Out-Host
     & $nssm set $Name AppDirectory $root | Out-Null            # run_server.py uses relative paths
     & $nssm set $Name DisplayName "Functions LLM Server" | Out-Null
-    & $nssm set $Name Description "Firestore tunnel server that answers prompts through OpenRouter/OpenAI." | Out-Null
+    & $nssm set $Name Description "Firestore tunnel server that answers prompts through OpenAI (OpenRouter as fallback)." | Out-Null
     & $nssm set $Name Start SERVICE_DELAYED_AUTO_START | Out-Null
     & $nssm set $Name AppEnvironmentExtra "PYTHONUNBUFFERED=1" "PYTHONIOENCODING=utf-8" | Out-Null
     & $nssm set $Name AppStdout "$root\logs\server.log" | Out-Null

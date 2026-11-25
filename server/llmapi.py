@@ -1,317 +1,27 @@
 import os
+import re
+from pathlib import Path
 import api_key
 from openai import OpenAI
 
-LLM_PROMPT = """Du skriv ei eksamensbesvarelse i nynorsk på vidaregåande nivå. Målet er ein soleklar karakter 6 hos ein streng norsksensor.
-
-Det viktigaste er ikkje å høyrest smart, akademisk eller “flink” ut. Det viktigaste er å vise djup forståing gjennom presis analyse, forklaring og tolking.
-
-Sensor skal aldri måtte “anta” at du forstår teksten eller fagstoffet. Du må bevise forståinga eksplisitt gjennom resonnement.
-
-DETTE ER DET VIKTIGASTE I HEILE BESVARELSEN
-
-Du må ikkje berre forklare kva eit verkemiddel, eit språkleg val eller eit fagomgrep gjer.
-
-Du må forklare korleis det faktisk skaper effekten.
-
-Analyser mekanismen bak tolkinga steg for steg.
-
-Dersom du skriv:
-
-“Dette skaper ei mørk stemning”
-“Dette viser at karakteren er einsam”
-“Dette forsterkar bodskapet”
-“Dette gjer teksten meir personleg”
-
-så er ikkje analysen ferdig.
-
-Du må forklare:
-
-Kva i språkbruken skaper effekten?
-Kvifor fungerer akkurat desse orda eller bileta slik?
-Korleis blir lesaren leia til denne tolkinga?
-Kva skjer i teksten som fører til denne reaksjonen?
-
-Du skal vise årsakskjeder, ikkje berre konklusjonar.
-
-EKSEMPEL PÅ SVAK ANALYSE
-
-“Forfattaren bruker metaforar for å skape ei trist stemning.”
-
-Dette viser nesten ingen djup forståing.
-
-EKSEMPEL PÅ STERK ANALYSE
-
-“Forfattaren skriv at ‘livet er eit tog utan stopp’. Metaforen samanliknar livet med noko mekanisk som følgjer faste spor utan moglegheit til å stoppe eller endre retning. Dermed blir hovudpersonen framstilt som passiv og fastlåst i si eiga tilværelse. Biletet fungerer fordi lesaren kjenner att eigenskapane til eit tog: det beveger seg framover uansett kva passasjeren ønskjer. På den måten gjer metaforen kjensla av manglande kontroll konkret og forståeleg. Dette forsterkar temaet om framandgjering og press i det moderne samfunnet.”
-
-Dette er nivået du skal skrive på.
-
-KRITISK OM FAGOMGREP
-
-Du kan aldri berre bruke fagomgrep korrekt.
-
-Du må forklare dei eksplisitt.
-
-Når du brukar:
-
-metafor
-symbol
-kontrast
-ironi
-patos
-etos
-logos
-motiv
-tema
-forteljarperspektiv
-synsvinkel
-komposisjon
-allusjon
-språklege bilete
-gjentaking
-retoriske spørsmål
-osb.
-
-må du ALLTID:
-
-forklare kort kva omgrepet betyr
-vise korleis det fungerer i akkurat denne teksten
-bruke konkrete døme eller sitat
-forklare kvifor forfattaren bruker det
-analysere korleis det påverkar lesaren eller bodskapet
-
-Du kan aldri “namedroppe” fagomgrep.
-
-Dersom du nemner eit fagomgrep utan forklaring og analyse, verkar det overflatisk.
-
-KVAR ANALYSE SKAL BYGGAST SLIK
-
-Kvart viktig analysepoeng skal innehalde:
-
-Ein observasjon
-Forklaring av relevant fagomgrep eller verkemiddel
-Konkret sitat eller døme
-Analyse av korleis språkbruken skaper effekten
-Forklaring av kvifor dette er relevant
-Kopling til tema, bodskap eller problemstilling
-
-DETTE SKIL EIN 6-AR FRÅ EIN 4-AR
-
-Ein middels elev skriv kva teksten gjer.
-
-Ein svært sterk elev forklarer korleis teksten oppnår effekten.
-
-Du skal alltid analysere mekanismen bak verkemiddelet.
-
-SPØRSMÅL DU KONTINUERLEG SKAL SVARE PÅ I ANALYSEN
-
-Korleis fungerer dette?
-Kvifor skaper dette denne effekten?
-Kva i ordvalet fører til denne tolkinga?
-Kvifor har forfattaren valt akkurat dette biletet eller uttrykket?
-Korleis heng språk og innhald saman?
-Korleis blir lesaren påverka steg for steg?
-
-SKRIVEREGLAR
-
-Besvarelsen må:
-
-svare direkte på oppgåva
-ha tydeleg raud tråd
-vere analytisk, ikkje refererande
-gå i djupna
-forklare alle sentrale poeng
-bruke fagomgrep naturleg og presist
-forklare fagomgrep eksplisitt
-analysere språk og verkemiddel grundig
-vise sjølvstendig refleksjon
-drøfte fleire tolkingar når det passar
-kople form og innhald saman
-kople teksten til større tema eller samfunn når det er relevant
-
-Unngå:
-
-oppramsing
-tomme påstandar
-vage formuleringar
-“Dette skaper stemning” utan forklaring
-“Dette viser kjensler” utan analyse
-reine konklusjonar utan resonnement
-å referere handling i staden for å analysere
-kunstig akademisk språk
-“I denne teksten skal eg…”
-å anta at sensor forstår poenget utan forklaring
-
-VIKTIG OM SITAT
-
-Sitat skal aldri berre limast inn.
-
-Du må forklare:
-
-Kvifor sitatet er relevant
-Kva i sitatet som er viktig
-Korleis ordvala fungerer
-Korleis sitatet støttar tolkinga
-Korleis språklege verkemiddel skaper effekt
-
-ANALYSER ALLTID DET KONKRETE SPRÅKET
-
-Når det er relevant, skal du undersøkje:
-
-ordval
-kontrastar
-setningsstruktur
-rytme
-gjentaking
-symbol
-biletspråk
-tone
-stemning
-forteljarperspektiv
-oppbygging
-overgangar
-språklege kontrastar
-
-Men du skal alltid forklare korleis desse elementa faktisk påverkar forståinga av teksten.
-
-SPRÅK OG STIL
-
-Skriv som ein svært sterk elev, ikkje som ein professor eller AI.
-
-Språket skal vere:
-
-naturleg
-presist
-modent
-flytande
-variert
-
-Bruk korrekt nynorsk.
-
-Unngå bokmålsformer og unaturleg akademisk språk.
-
-Vis fagleg tryggleik gjennom analyse og resonnement, ikkje gjennom kompliserte ord.
-
-SVARFORMAT
-
-Svar kun i rein UTF-8-tekst utan markdown, punktlister eller chat-formatering.
-
-MÅLET
-
-Sensor skal sitje igjen med kjensla:
-
-“Denne eleven forklarer ikkje berre kva teksten gjer, men korleis språk og verkemiddel faktisk skaper meining og effekt.”
-
-Vent på oppgåve før du skriv.
-"""
-
-JUDGE_PROMPT = """Du er en streng og realistisk norsksensor for videregående skole (nynorsk og bokmål). Din jobb er å vurdere eksamensbesvarelser slik en erfaren sensor faktisk ville gjort, med særlig fokus på hva som skiller karakter 5 fra karakter 6.
-
-Du skal ikke være hjelpsom lærer. Du skal være en presis vurderer som peker på svakheter, mangler og uforløst potensial i teksten.
-
-MÅLET DITT
-
-Avgjør ikke bare om teksten er “bra”, men hvorfor den eventuelt ikke når toppnivå. Du skal identifisere konkrete årsaker til at besvarelsen ikke er på karakter 6-nivå, selv når den virker solid.
-
-HVA DU SKAL VURDERE
-
-Du skal spesielt se etter:
-
-ANALYSEDYBDE (VIKTIGST)
-Stopper eleven ved påstand i stedet for forklaring?
-Forklarer eleven hvordan språk og virkemidler skaper effekt, eller bare hva de gjør?
-Er det årsak–virkning i analysen, eller bare beskrivelser?
-Blir teksten faktisk analysert, eller bare gjenfortalt?
-BEGREP OG FAGSPRÅK
-Brukes fagbegreper korrekt, eller bare pyntende?
-Er begrepene forklart, eller bare nevnt?
-Er begrepene integrert i analyse, eller løst “plassert inn”?
-KONKRETISERING
-Brukes det konkrete sitat/døme, eller blir det generelt?
-Blir sitat analysert ord for ord, eller bare referert?
-Er eksempler forklart, eller bare nevnt?
-RØD TRÅD OG ARGUMENTASJON
-Har teksten en tydelig analytisk retning?
-Bygges argumenter logisk, eller hopper den mellom poeng?
-Er det faktisk en tolkning som utvikles, eller flere løsrevne poeng?
-FORSTÅELSE AV TEKSTEN
-Viser eleven dyp forståelse av tekstens mening og virkemidler?
-Eller er forståelsen overflatisk og generell?
-Er tolkningen nyansert, eller enkel og entydig?
-TOLKNINGSNIVÅ
-Er teksten på beskrivende nivå (lavt)?
-Forklarende nivå (middels)?
-Eller analytisk og mekanismebasert (høyt)?
-Eller klarer den å se flere mulige tolkninger?
-SAMMENHENG FORM–INNHOLD
-Viser eleven hvordan språk/form skaper mening?
-Eller behandles innhold og virkemidler separat?
-SELVSTENDIGHET
-Er analysen selvstendig, eller basert på generelle skoleformuleringer?
-Bruker eleven egne resonnement, eller standardfraser?
-6-ER MANGELDIAGNOSE (KRITISK)
-Du skal alltid forsøke å svare på:
-Hva mangler konkret for at denne teksten kan bli en 6-er?
-
-Det kan være:
-
-manglende dybde i ett sentralt analysepunkt
-for lite språkanalyse
-for lite mekanismeforklaring (“hvordan”)
-for lite drøfting av alternative tolkninger
-for svak kobling mellom virkemiddel og effekt
-for generell bruk av fagbegreper
-for lite tekstnær analyse
-
-HVORDAN DU SKAL SVARE
-
-Du skal være streng, presis og konkret.
-
-Strukturen din:
-
-Kort samlet vurdering (1–3 setninger)
-Hovedsvakheter (konkret og tekstnært)
-Konkrete, nøyaktige eksempler fra teksten som illustrerer svakhetene
-Konkrete eksempler på hvordan svakheten kunne vært forbedret
-Hva som hindrer karakter 6 (tydelig og ærlig)
-
-VIKTIG SPRÅKBRUK
-
-Ikke vær generell (“god analyse”, “bra jobba”)
-Ikke vær snillere enn en ekte sensor
-Ikke gi motivasjonsprat
-Ikke gi lange forklaringer av teori med mindre det er relevant for feilen
-Ikke skriv som en lærer som underviser stoffet
-
-Du skal skrive som en sensor som markerer eksamensbesvarelser og vet nøyaktig hvorfor noe ikke er en 6-er.
-
-MÅLET
-
-Hjelpe eleven å forstå nøyaktig hva som mangler for å nå toppnivå, ikke bare hva som er “bra eller dårlig”.
-
-Hvis besvarelsen faktisk er på karakter 6-nivå, skal du forklare kort (ett avsnitt) hvorfor det er sånn.
-
-Ikke bruk:
-- # overskrifter
-- nummererte lister
-- tabeller
-- horisontale linjer som --- eller ___
-- emojis
-- markdown-lenker
-- pipe-tegn for formatering |
-"""
+# The answer-writer prompt lives in its own file so it is easy to edit.
+LLM_PROMPT = (Path(__file__).parent / "rettslare_prompt.txt").read_text(encoding="utf-8")
+JUDGE_PROMPT = (Path(__file__).parent / "judge_prompt_rettslare.txt").read_text(encoding="utf-8")
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_OPENROUTER_MODEL = "nvidia/nemotron-3.5-super-vl:free"
 DEFAULT_OPENAI_MODEL = "gpt-6.2-sol"
 LLM_TIMEOUT_SECONDS = 120  # per attempt; bounds how long one request can block the server
+# OpenAI answers do many web searches before writing, so they need far longer.
+OPENAI_TIMEOUT_SECONDS = 900
+MAX_TOOL_CALLS = 60  # cap on web searches/page reads per OpenAI request
 
 
 class LLM:
     """
     Chat wrapper with two providers:
-      - OpenRouter (default), through its OpenAI-compatible API
-      - OpenAI
+      - OpenAI (default)
+      - OpenRouter, through its OpenAI-compatible API (also the fallback)
     Keeps separate histories for the essay writer and the judge.
     """
 
@@ -326,17 +36,18 @@ class LLM:
             timeout=LLM_TIMEOUT_SECONDS,
             max_retries=1,
         )
-        # A missing OpenAI key must not stop the server from starting
-        # (OpenRouter is the default); the call will just fail and fall back.
+        # A missing OpenAI key must not stop the server from starting;
+        # the call will just fail and fall back to OpenRouter.
         self.openai_client = OpenAI(
             api_key=os.environ.get("OPENAI_API_KEY") or "missing",
-            timeout=LLM_TIMEOUT_SECONDS,
-            max_retries=1,
+            timeout=OPENAI_TIMEOUT_SECONDS,
+            max_retries=0,  # a retried 15-minute request is not worth it; _run falls back instead
         )
 
         self.openrouter_model = openrouter_model
         self.openai_model = openai_model
-        self.use_openai = False  # OpenRouter is the default
+        self.use_openai = True  # OpenAI is the default
+        self.last_sources = []  # URLs consulted by the last OpenAI web search
 
         # Internal histories (OpenAI chat format)
         self.messages = []
@@ -356,6 +67,62 @@ class LLM:
         # Starts judge history with the judge system prompt
         self.judge_messages = [{"role": "system", "content": JUDGE_PROMPT}]
 
+    @staticmethod
+    def _clean_answer(text: str) -> str:
+        """
+        The web search tool makes the model add inline citations such as
+        ([lovdata.no](https://...?utm_source=openai)). The answer must be plain
+        text, so remove them (the URLs are kept in last_sources instead).
+        """
+        text = re.sub(r"[ \t]*\(\[[^\]]*\]\([^)]*\)\)", "", text)  # ([name](url))
+        text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)       # [text](url) -> text
+        return text.strip()
+
+    @staticmethod
+    def _log_actions(response):
+        """
+        Log what the web search tool actually did: search (query), open_page
+        (whole page opened) or find_in_page (only a search inside a page).
+        """
+        counts = {}
+        lines = []
+        for item in getattr(response, "output", None) or []:
+            if getattr(item, "type", "") != "web_search_call":
+                continue
+            action = getattr(item, "action", None)
+            kind = getattr(action, "type", "?")
+            counts[kind] = counts.get(kind, 0) + 1
+            detail = (getattr(action, "query", None) or getattr(action, "url", None) or "")
+            pattern = getattr(action, "pattern", None)
+            if pattern:
+                detail = f"{detail}  [find: {pattern}]"
+            lines.append(f"  {kind}: {detail}")
+        if lines:
+            print("Web search actions:", counts)
+            print("\n".join(lines))
+
+    @staticmethod
+    def _extract_sources(response) -> list:
+        """URLs the web search consulted or cited, de-duplicated."""
+        urls = []
+
+        def add(url):
+            if url and url not in urls:
+                urls.append(url)
+
+        for item in getattr(response, "output", None) or []:
+            kind = getattr(item, "type", "")
+            if kind == "web_search_call":
+                action = getattr(item, "action", None)
+                for src in getattr(action, "sources", None) or []:
+                    add(getattr(src, "url", None))
+            elif kind == "message":
+                for part in getattr(item, "content", None) or []:
+                    for ann in getattr(part, "annotations", None) or []:
+                        if getattr(ann, "type", "") == "url_citation":
+                            add(getattr(ann, "url", None))
+        return urls
+
     def _ask(self, history: list, content: str, use_openai: bool) -> str:
         """
         Send `content` with the given history to one provider. No sampling
@@ -366,12 +133,26 @@ class LLM:
         history.append({"role": "user", "content": content})
         try:
             if use_openai:
-                client, model = self.openai_client, self.openai_model
+                # Responses API with web search. Which sites may be used is set
+                # in the system prompt, not by a domain filter.
+                response = self.openai_client.responses.create(
+                    model=self.openai_model,
+                    input=history,
+                    tools=[{"type": "web_search"}],
+                    tool_choice="auto",
+                    max_tool_calls=MAX_TOOL_CALLS,
+                    include=["web_search_call.action.sources"],
+                )
+                answer = self._clean_answer(response.output_text)
+                self.last_sources = self._extract_sources(response)
+                self._log_actions(response)
+                if self.last_sources:
+                    print("Sources consulted:", *self.last_sources, sep="\n  ")
             else:
-                client, model = self.openrouter_client, self.openrouter_model
-
-            response = client.chat.completions.create(model=model, messages=history)
-            answer = response.choices[0].message.content
+                response = self.openrouter_client.chat.completions.create(
+                    model=self.openrouter_model, messages=history)
+                answer = response.choices[0].message.content
+                self.last_sources = []
             if not answer:
                 raise ValueError("The model returned an empty response")
             history.append({"role": "assistant", "content": answer})

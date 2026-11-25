@@ -114,7 +114,7 @@ class Server:
         """Process NEW command."""
         self.llm.reset_chat_history()
         self.llm.reset_judge_history()
-        self.llm.use_openai = False  # Reset to OpenRouter (the default)
+        self.llm.use_openai = True  # Reset to OpenAI (the default)
         return "success"
     
     def _switch(self, args: list) -> str:

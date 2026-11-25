@@ -94,26 +94,60 @@ commands = {
 
 
 # --- mouse helpers (ctypes instead of pyautogui, which LibreOffice's Python lacks) ---
-def _move_mouse_by(dx: int, dy: int):
-    """Relative mouse move, like pyautogui.move()/moveRel()."""
+# Windows (UIPI) refuses SetCursorPos from this process while the foreground window
+# belongs to a program running as administrator and this client is not. The move then
+# silently does nothing until a normal window (taskbar, desktop, ...) is in front.
+_mouse_blocked = False
+
+
+def _move_mouse_by(dx: int, dy: int) -> bool:
+    """Relative mouse move, like pyautogui.move()/moveRel(). False if Windows refused it."""
+    global _mouse_blocked
     pt = wintypes.POINT()
     ctypes.windll.user32.GetCursorPos(ctypes.byref(pt))
-    ctypes.windll.user32.SetCursorPos(pt.x + dx, pt.y + dy)
+    ok = bool(ctypes.windll.user32.SetCursorPos(pt.x + dx, pt.y + dy))
+    if not ok and not _mouse_blocked:
+        print("Windows blocked the mouse move: the window in front runs as administrator "
+              "and this client does not. It resumes once a normal window is in front. "
+              "Fix: start that program without admin rights, or run this client as admin.")
+    _mouse_blocked = not ok
+    return ok
 
 
-def notify():
-    """Same as notifier.notify(): a big mouse jump to show the work is done."""
-    _move_mouse_by(500, 500)
+_pending_notify = threading.Event()  # set = cancel the notify still waiting to get through
+
+
+def notify(timeout: float = 120.0):
+    """Same as notifier.notify(): a big mouse jump to show the work is done.
+
+    If Windows blocks the jump (admin window in front), keep trying in the background
+    so the signal arrives as soon as the user switches to a normal window."""
+    global _pending_notify
+    _pending_notify.set()  # drop an older notify that never got through
+    if _move_mouse_by(500, 500):
+        return
+    cancel = _pending_notify = threading.Event()
+
+    def retry():
+        deadline = time.time() + timeout
+        while not cancel.is_set() and time.time() < deadline:
+            time.sleep(0.1)
+            if not cancel.is_set() and _move_mouse_by(500, 500):
+                return
+
+    threading.Thread(target=retry, daemon=True).start()
 
 
 def start_mouse_movement():
+    _pending_notify.set()  # new work started: the old "done" signal is stale
     stop_event = threading.Event()
 
     def move_mouse():
         while not stop_event.is_set():
-            _move_mouse_by(0, 5)
+            moved = _move_mouse_by(0, 5)
             time.sleep(0.1)
-            _move_mouse_by(0, -5)
+            if moved:  # only move back if the first half got through (no drift)
+                _move_mouse_by(0, -5)
             time.sleep(0.1)
 
     thread = threading.Thread(target=move_mouse, daemon=True)

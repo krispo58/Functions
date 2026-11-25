@@ -153,6 +153,11 @@ _user32 = ctypes.windll.user32
 _kernel32 = ctypes.windll.kernel32
 _user32.GetForegroundWindow.restype = wintypes.HWND
 _user32.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
+_user32.GetAncestor.restype = wintypes.HWND
+_user32.GetAncestor.argtypes = [wintypes.HWND, wintypes.UINT]
+_user32.IsIconic.argtypes = [wintypes.HWND]
+_user32.IsWindowVisible.argtypes = [wintypes.HWND]
+GA_ROOTOWNER = 3
 _kernel32.OpenProcess.restype = wintypes.HANDLE
 _kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
 _kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
@@ -163,10 +168,18 @@ PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
 
 
 def _foreground_is_writer() -> bool:
-    """True if the foreground window belongs to LibreOffice (soffice)."""
+    """True if the foreground window belongs to LibreOffice (soffice) and is on screen.
+
+    When Writer is minimized and Windows has no other window to hand focus to, the
+    minimized Writer window stays the foreground window. Count that as "not in
+    Writer", or the deactivation would only fire once the user clicks elsewhere."""
     try:
         hwnd = _user32.GetForegroundWindow()
         if not hwnd:
+            return False
+        # Dialogs are owned by the document window: judge by that top-level window.
+        root = _user32.GetAncestor(hwnd, GA_ROOTOWNER) or hwnd
+        if _user32.IsIconic(root) or not _user32.IsWindowVisible(root):
             return False
         pid = wintypes.DWORD()
         _user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
