@@ -7,15 +7,22 @@ import time
 
 
 class Server:
-    def __init__(self, project_id: str = None, debug: bool = False):
+    MAIN_CHANNEL = 'server-channel'
+    BACKUP_CHANNEL = 'backup-channel'
+
+    def __init__(self, project_id: str = None, debug: bool = False, backup: bool = False):
         """
         Initialize the server.
-        
+
         Args:
             project_id: Firebase project ID (defaults to FIREBASE_PROJECT_ID env var)
             debug: Enable debug logging
+            backup: Run as a backup server: identical to the main server, but it
+                listens on its own channel. Clients choose which one to talk to.
         """
         self.debug = debug
+        self.backup = backup
+        self.channel = self.BACKUP_CHANNEL if backup else self.MAIN_CHANNEL
         
         if project_id is None:
             project_id = os.environ.get("FIREBASE_PROJECT_ID")
@@ -130,11 +137,11 @@ class Server:
         """Start the server and listen for incoming requests."""
         print("Starting Firebase Tunnel Server...")
         self.tunnel.on_message(self._handle_request)
-        self.tunnel.start_listening('server-channel', poll_interval=0.5)
+        self.tunnel.start_listening(self.channel, poll_interval=0.5)
         self.tunnel.start_heartbeat()
         self.tunnel.start_cleanup()
         print("Firebase Tunnel Server started.")
-        print("Listening on 'server-channel'")
+        print(f"Listening on '{self.channel}'" + (" (backup server)" if self.backup else ""))
         print("Press Ctrl+C to stop")
         
         try:
@@ -145,7 +152,7 @@ class Server:
                 if not self.tunnel.is_listening():
                     print("[SERVER] Listener thread is not running; restarting it")
                     self.tunnel._listener_running = False
-                    self.tunnel.start_listening('server-channel', poll_interval=0.5)
+                    self.tunnel.start_listening(self.channel, poll_interval=0.5)
         except KeyboardInterrupt:
             print("\n[SERVER] Shutting down...")
             self.tunnel.stop_listening()

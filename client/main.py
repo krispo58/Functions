@@ -59,7 +59,15 @@ def switch_llm(args: list[str]):
     else:
         word.write_end("sentence")
 
+def switch_server(args: list[str]):
+    response = client.switch_server()
+    if response is not None:
+        word.write_end(response)
+    else:
+        word.write_end("sentence")
+
 commands = {
+    "backupserver": switch_server,
     "stop": stop_program,
     "quit": stop_program,
     "exit": stop_program,

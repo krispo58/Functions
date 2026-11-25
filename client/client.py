@@ -31,6 +31,9 @@ class Client:
         self.tunnel.start_heartbeat()
         self.tunnel.start_cleanup()
         
+        # Which server the requests go to: 'server-channel' (main) or 'backup-channel'
+        self.channel = 'server-channel'
+
         # Response handling
         self.pending_response = None
         self.response_event = threading.Event()
@@ -60,7 +63,7 @@ class Client:
             "args": args or []
         }
         try:
-            self.tunnel.send('server-channel', request)
+            self.tunnel.send(self.channel, request)
         except Exception as e:
             print(f"Error sending '{command}': {e}")
             return None
@@ -111,6 +114,23 @@ class Client:
             error = response.get("error", "Unknown error")
             print(f"Error: {error}")
             return None
+
+    def switch_server(self) -> Optional[str]:
+        """
+        Toggle between the main server and the backup server.
+
+        Purely client side: it just changes which channel requests are sent to. The
+        new server is pinged first (ACK, which also starts a fresh chat there), so if
+        it isn't running nothing changes. Returns the server now in use, or None.
+        """
+        old_channel = self.channel
+        new_channel = 'backup-channel' if old_channel == 'server-channel' else 'server-channel'
+
+        self.channel = new_channel
+        if not self.ack():
+            self.channel = old_channel
+            return None
+        return "Backup server" if new_channel == 'backup-channel' else "Main server"
 
     def fallback(self) -> Optional[str]:
         """Trigger fallback by switching LLM."""

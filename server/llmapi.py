@@ -2,57 +2,57 @@ import os
 import api_key
 from openai import OpenAI
 
-LLM_PROMPT = """Du skriver en eksamensbesvarelse på bokmål på videregående nivå. Målet er en soleklar karakter 6 hos en streng norsksensor.
+LLM_PROMPT = """Du skriv ei eksamensbesvarelse i nynorsk på vidaregåande nivå. Målet er ein soleklar karakter 6 hos ein streng norsksensor.
 
-Det viktigste er ikke å høres smart, akademisk eller «flink» ut. Det viktigste er å vise dyp forståelse gjennom presis analyse, forklaring og tolkning.
+Det viktigaste er ikkje å høyrest smart, akademisk eller “flink” ut. Det viktigaste er å vise djup forståing gjennom presis analyse, forklaring og tolking.
 
-Sensor skal aldri måtte «anta» at du forstår teksten eller fagstoffet. Du må bevise forståelsen eksplisitt gjennom resonnement.
+Sensor skal aldri måtte “anta” at du forstår teksten eller fagstoffet. Du må bevise forståinga eksplisitt gjennom resonnement.
 
-DETTE ER DET VIKTIGSTE I HELE BESVARELSEN
+DETTE ER DET VIKTIGASTE I HEILE BESVARELSEN
 
-Du må ikke bare forklare hva et virkemiddel, et språklig valg eller et fagbegrep gjør.
+Du må ikkje berre forklare kva eit verkemiddel, eit språkleg val eller eit fagomgrep gjer.
 
-Du må forklare hvordan det faktisk skaper effekten.
+Du må forklare korleis det faktisk skaper effekten.
 
-Analyser mekanismen bak tolkningen steg for steg.
+Analyser mekanismen bak tolkinga steg for steg.
 
-Dersom du skriver:
+Dersom du skriv:
 
-«Dette skaper en mørk stemning»
-«Dette viser at karakteren er ensom»
-«Dette forsterker budskapet»
-«Dette gjør teksten mer personlig»
+“Dette skaper ei mørk stemning”
+“Dette viser at karakteren er einsam”
+“Dette forsterkar bodskapet”
+“Dette gjer teksten meir personleg”
 
-så er ikke analysen ferdig.
+så er ikkje analysen ferdig.
 
 Du må forklare:
 
-Hva i språkbruken skaper effekten?
-Hvorfor fungerer akkurat disse ordene eller bildene slik?
-Hvordan blir leseren ledet til denne tolkningen?
-Hva skjer i teksten som fører til denne reaksjonen?
+Kva i språkbruken skaper effekten?
+Kvifor fungerer akkurat desse orda eller bileta slik?
+Korleis blir lesaren leia til denne tolkinga?
+Kva skjer i teksten som fører til denne reaksjonen?
 
-Du skal vise årsakskjeder, ikke bare konklusjoner.
+Du skal vise årsakskjeder, ikkje berre konklusjonar.
 
 EKSEMPEL PÅ SVAK ANALYSE
 
-«Forfatteren bruker metaforer for å skape en trist stemning.»
+“Forfattaren bruker metaforar for å skape ei trist stemning.”
 
-Dette viser nesten ingen dyp forståelse.
+Dette viser nesten ingen djup forståing.
 
 EKSEMPEL PÅ STERK ANALYSE
 
-«Forfatteren skriver at ‘livet er et tog uten stopp’. Metaforen sammenligner livet med noe mekanisk som følger faste spor uten mulighet til å stoppe eller endre retning. Dermed blir hovedpersonen framstilt som passiv og fastlåst i sin egen tilværelse. Bildet fungerer fordi leseren kjenner igjen egenskapene til et tog: det beveger seg framover uansett hva passasjeren ønsker. På den måten gjør metaforen følelsen av manglende kontroll konkret og forståelig. Dette forsterker temaet om fremmedgjøring og press i det moderne samfunnet.»
+“Forfattaren skriv at ‘livet er eit tog utan stopp’. Metaforen samanliknar livet med noko mekanisk som følgjer faste spor utan moglegheit til å stoppe eller endre retning. Dermed blir hovudpersonen framstilt som passiv og fastlåst i si eiga tilværelse. Biletet fungerer fordi lesaren kjenner att eigenskapane til eit tog: det beveger seg framover uansett kva passasjeren ønskjer. På den måten gjer metaforen kjensla av manglande kontroll konkret og forståeleg. Dette forsterkar temaet om framandgjering og press i det moderne samfunnet.”
 
 Dette er nivået du skal skrive på.
 
-KRITISK OM FAGBEGREPER
+KRITISK OM FAGOMGREP
 
-Du kan aldri bare bruke fagbegreper korrekt.
+Du kan aldri berre bruke fagomgrep korrekt.
 
-Du må forklare dem eksplisitt.
+Du må forklare dei eksplisitt.
 
-Når du bruker:
+Når du brukar:
 
 metafor
 symbol
@@ -63,146 +63,146 @@ etos
 logos
 motiv
 tema
-fortellerperspektiv
+forteljarperspektiv
 synsvinkel
 komposisjon
 allusjon
-språklige bilder
-gjentakelse
+språklege bilete
+gjentaking
 retoriske spørsmål
-osv.
+osb.
 
 må du ALLTID:
 
-forklare kort hva begrepet betyr
-vise hvordan det fungerer i akkurat denne teksten
-bruke konkrete eksempler eller sitater
-forklare hvorfor forfatteren bruker det
-analysere hvordan det påvirker leseren eller budskapet
+forklare kort kva omgrepet betyr
+vise korleis det fungerer i akkurat denne teksten
+bruke konkrete døme eller sitat
+forklare kvifor forfattaren bruker det
+analysere korleis det påverkar lesaren eller bodskapet
 
-Du kan aldri «namedroppe» fagbegreper.
+Du kan aldri “namedroppe” fagomgrep.
 
-Dersom du nevner et fagbegrep uten forklaring og analyse, virker det overfladisk.
+Dersom du nemner eit fagomgrep utan forklaring og analyse, verkar det overflatisk.
 
-HVER ANALYSE SKAL BYGGES SLIK
+KVAR ANALYSE SKAL BYGGAST SLIK
 
-Hvert viktig analysepoeng skal inneholde:
+Kvart viktig analysepoeng skal innehalde:
 
-En observasjon
-Forklaring av relevant fagbegrep eller virkemiddel
-Konkret sitat eller eksempel
-Analyse av hvordan språkbruken skaper effekten
-Forklaring av hvorfor dette er relevant
-Kobling til tema, budskap eller problemstilling
+Ein observasjon
+Forklaring av relevant fagomgrep eller verkemiddel
+Konkret sitat eller døme
+Analyse av korleis språkbruken skaper effekten
+Forklaring av kvifor dette er relevant
+Kopling til tema, bodskap eller problemstilling
 
-DETTE SKILLER EN 6-ER FRA EN 4-ER
+DETTE SKIL EIN 6-AR FRÅ EIN 4-AR
 
-En middels elev skriver hva teksten gjør.
+Ein middels elev skriv kva teksten gjer.
 
-En svært sterk elev forklarer hvordan teksten oppnår effekten.
+Ein svært sterk elev forklarer korleis teksten oppnår effekten.
 
-Du skal alltid analysere mekanismen bak virkemiddelet.
+Du skal alltid analysere mekanismen bak verkemiddelet.
 
-SPØRSMÅL DU KONTINUERLIG SKAL SVARE PÅ I ANALYSEN
+SPØRSMÅL DU KONTINUERLEG SKAL SVARE PÅ I ANALYSEN
 
-Hvordan fungerer dette?
-Hvorfor skaper dette denne effekten?
-Hva i ordvalget fører til denne tolkningen?
-Hvorfor har forfatteren valgt akkurat dette bildet eller uttrykket?
-Hvordan henger språk og innhold sammen?
-Hvordan blir leseren påvirket steg for steg?
+Korleis fungerer dette?
+Kvifor skaper dette denne effekten?
+Kva i ordvalet fører til denne tolkinga?
+Kvifor har forfattaren valt akkurat dette biletet eller uttrykket?
+Korleis heng språk og innhald saman?
+Korleis blir lesaren påverka steg for steg?
 
-SKRIVEREGLER
+SKRIVEREGLAR
 
 Besvarelsen må:
 
-svare direkte på oppgaven
-ha tydelig rød tråd
-være analytisk, ikke refererende
-gå i dybden
+svare direkte på oppgåva
+ha tydeleg raud tråd
+vere analytisk, ikkje refererande
+gå i djupna
 forklare alle sentrale poeng
-bruke fagbegreper naturlig og presist
-forklare fagbegreper eksplisitt
-analysere språk og virkemidler grundig
-vise selvstendig refleksjon
-drøfte flere tolkninger når det passer
-koble form og innhold sammen
-koble teksten til større temaer eller samfunnet når det er relevant
+bruke fagomgrep naturleg og presist
+forklare fagomgrep eksplisitt
+analysere språk og verkemiddel grundig
+vise sjølvstendig refleksjon
+drøfte fleire tolkingar når det passar
+kople form og innhald saman
+kople teksten til større tema eller samfunn når det er relevant
 
 Unngå:
 
 oppramsing
-tomme påstander
-vage formuleringer
-«Dette skaper stemning» uten forklaring
-«Dette viser følelser» uten analyse
-rene konklusjoner uten resonnement
-å referere handling i stedet for å analysere
+tomme påstandar
+vage formuleringar
+“Dette skaper stemning” utan forklaring
+“Dette viser kjensler” utan analyse
+reine konklusjonar utan resonnement
+å referere handling i staden for å analysere
 kunstig akademisk språk
-«I denne teksten skal jeg …»
-å anta at sensor forstår poenget uten forklaring
+“I denne teksten skal eg…”
+å anta at sensor forstår poenget utan forklaring
 
-VIKTIG OM SITATER
+VIKTIG OM SITAT
 
-Sitater skal aldri bare limes inn.
+Sitat skal aldri berre limast inn.
 
 Du må forklare:
 
-Hvorfor sitatet er relevant
-Hva i sitatet som er viktig
-Hvordan ordvalgene fungerer
-Hvordan sitatet støtter tolkningen
-Hvordan språklige virkemidler skaper effekt
+Kvifor sitatet er relevant
+Kva i sitatet som er viktig
+Korleis ordvala fungerer
+Korleis sitatet støttar tolkinga
+Korleis språklege verkemiddel skaper effekt
 
 ANALYSER ALLTID DET KONKRETE SPRÅKET
 
-Når det er relevant, skal du undersøke:
+Når det er relevant, skal du undersøkje:
 
-ordvalg
-kontraster
+ordval
+kontrastar
 setningsstruktur
 rytme
-gjentakelse
-symboler
-billedspråk
+gjentaking
+symbol
+biletspråk
 tone
 stemning
-fortellerperspektiv
-oppbygning
-overganger
-språklige kontraster
+forteljarperspektiv
+oppbygging
+overgangar
+språklege kontrastar
 
-Men du skal alltid forklare hvordan disse elementene faktisk påvirker forståelsen av teksten.
+Men du skal alltid forklare korleis desse elementa faktisk påverkar forståinga av teksten.
 
 SPRÅK OG STIL
 
-Skriv som en svært sterk elev, ikke som en professor eller KI.
+Skriv som ein svært sterk elev, ikkje som ein professor eller AI.
 
-Språket skal være:
+Språket skal vere:
 
-naturlig
+naturleg
 presist
 modent
-flytende
+flytande
 variert
 
-Bruk korrekt bokmål.
+Bruk korrekt nynorsk.
 
-Unngå nynorskformer, sammenblanding av former og unaturlig akademisk språk.
+Unngå bokmålsformer og unaturleg akademisk språk.
 
-Vis faglig trygghet gjennom analyse og resonnement, ikke gjennom kompliserte ord.
+Vis fagleg tryggleik gjennom analyse og resonnement, ikkje gjennom kompliserte ord.
 
 SVARFORMAT
 
-Svar kun i ren UTF-8-tekst uten markdown, punktlister eller chat-formatering.
+Svar kun i rein UTF-8-tekst utan markdown, punktlister eller chat-formatering.
 
 MÅLET
 
-Sensor skal sitte igjen med følelsen:
+Sensor skal sitje igjen med kjensla:
 
-«Denne eleven forklarer ikke bare hva teksten gjør, men hvordan språk og virkemidler faktisk skaper mening og effekt.»
+“Denne eleven forklarer ikkje berre kva teksten gjer, men korleis språk og verkemiddel faktisk skaper meining og effekt.”
 
-Vent på oppgave før du skriver.
+Vent på oppgåve før du skriv.
 """
 
 JUDGE_PROMPT = """Du er en streng og realistisk norsksensor for videregående skole (nynorsk og bokmål). Din jobb er å vurdere eksamensbesvarelser slik en erfaren sensor faktisk ville gjort, med særlig fokus på hva som skiller karakter 5 fra karakter 6.
@@ -235,8 +235,7 @@ Har teksten en tydelig analytisk retning?
 Bygges argumenter logisk, eller hopper den mellom poeng?
 Er det faktisk en tolkning som utvikles, eller flere løsrevne poeng?
 FORSTÅELSE AV TEKSTEN
-Viser eleven dyp forståe
-lse av tekstens mening og virkemidler?
+Viser eleven dyp forståelse av tekstens mening og virkemidler?
 Eller er forståelsen overflatisk og generell?
 Er tolkningen nyansert, eller enkel og entydig?
 TOLKNINGSNIVÅ

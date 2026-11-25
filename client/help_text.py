@@ -14,5 +14,7 @@ HELP_TEXT = (
     "conversation: it forgets the chat, the judge's chat and any answers still waiting, and goes back "
     "to the OpenRouter model. Switch (also fallback) changes between OpenRouter and OpenAI and keeps "
     "the conversation. Test adds the letter t at the end of the document to show the program is alive. "
+    "Backupserver switches between the main server and the backup server (starting a fresh conversation "
+    "on it) and writes which one is now in use; if that server isn't running, nothing changes. "
     "Help writes this text."
 )

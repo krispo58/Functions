@@ -65,6 +65,13 @@ def fallback(args: list[str]):
     else:
         word.write_end("sentence")
 
+def switch_server(args: list[str]):
+    response = client.switch_server()
+    if response is not None:
+        word.write_end(response)
+    else:
+        word.write_end("sentence")
+
 def switch_llm(args: list[str]):
     response = client.switch()
     if response is not None:
@@ -80,6 +87,7 @@ commands = {
     "reset": reset,
     "fallback": fallback,
     "switch": switch_llm,
+    "backupserver": switch_server,
     "test": test,
     "help": show_help
 }

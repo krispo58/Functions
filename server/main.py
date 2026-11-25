@@ -1,3 +1,4 @@
+import argparse
 import importlib.util
 import os
 import sys
@@ -46,11 +47,17 @@ def harden_console():
 
 
 def run():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--backup", action="store_true",
+                        help="run as a backup server: same as normal, but on the backup "
+                             "channel; clients switch to it with ::backupserver::")
+    args, _ = parser.parse_known_args()
+
     harden_console()
     os.environ["FIREBASE_PROJECT_ID"] = "my-awesome-project-3c43d"
 
 
-    server = networkserver.Server(debug=True)
+    server = networkserver.Server(debug=True, backup=args.backup)
 
     server.start()
 

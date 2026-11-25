@@ -655,7 +655,7 @@ class FirebaseTransport:
 
     def _cleanup_loop(self) -> None:
         """Periodically clean up expired messages from all channels."""
-        channels = ['server-channel', 'client-channel']
+        channels = ['server-channel', 'backup-channel', 'client-channel']
         
         try:
             while self._cleanup_running:
